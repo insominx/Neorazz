@@ -198,7 +198,13 @@ describe("useDeckBridge and polls", () => {
     sendCommand({ type: "hello" })
 
     expect(lastState()).toMatchObject({
-      features: ["poll", "pollInline", "pollReview", "sound"],
+      features: [
+        "poll",
+        "pollInline",
+        "pollReview",
+        "sound",
+        "pollAfterPodium",
+      ],
       poll: null,
       pollsDone: [],
     })

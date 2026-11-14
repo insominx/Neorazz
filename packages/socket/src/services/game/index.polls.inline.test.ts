@@ -237,7 +237,7 @@ describe("Game starting a poll from a definition", () => {
     )
   })
 
-  it("answers busy after the podium, because the round is over", async () => {
+  it("still runs after the podium: the room votes, the result is saved, and a quiz step stays refused", async () => {
     const setup = createGame()
 
     await playToResults(setup, 0)
@@ -246,8 +246,23 @@ describe("Game starting a poll from a definition", () => {
     await vi.advanceTimersByTimeAsync(60_000)
 
     expect(setup.game.startInlinePoll(setup.manager.socket, definition)).toBe(
-      "busy",
+      "accepted",
     )
+    setup.game.votePoll(setup.alice.socket, "path-pick", 0)
+    setup.game.votePoll(setup.bob.socket, "path-pick", 0)
+    expect(setup.game.closePoll(setup.manager.socket)).toBe("accepted")
+    expect(setup.records).toHaveLength(1)
+    expect(setup.records[0]).toMatchObject({ counts: [2, 0], total: 2 })
+    expect(setup.game.dismissPoll(setup.manager.socket)).toBe("accepted")
+
+    expect(setup.game.finish(setup.manager.socket)).toBe("finished")
+    expect(setup.game.playQuestion(setup.manager.socket, 0)).toBe("finished")
+    expect(
+      setup.game.startInlinePoll(setup.manager.socket, {
+        ...definition,
+        id: "second-pick",
+      }),
+    ).toBe("accepted")
   })
 
   it("answers notLecture in a normal game and notManager to anyone else", () => {

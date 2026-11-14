@@ -136,22 +136,23 @@ afterEach(() => {
 })
 
 describe("HostPollLauncher availability", () => {
-  it.each([STATUS.SHOW_ROOM, STATUS.SHOW_RESPONSES, STATUS.SHOW_LEADERBOARD])(
-    "is offered on %s of a lecture room",
-    (screenName) => {
-      room(screenName)
-      render(<HostPollLauncher />)
+  it.each([
+    STATUS.SHOW_ROOM,
+    STATUS.SHOW_RESPONSES,
+    STATUS.SHOW_LEADERBOARD,
+    STATUS.FINISHED,
+  ])("is offered on %s of a lecture room", (screenName) => {
+    room(screenName)
+    render(<HostPollLauncher />)
 
-      expect(maybeLauncher()).toBeInTheDocument()
-    },
-  )
+    expect(maybeLauncher()).toBeInTheDocument()
+  })
 
   it.each([
     STATUS.SHOW_START,
     STATUS.SHOW_PREPARED,
     STATUS.SHOW_QUESTION,
     STATUS.SELECT_ANSWER,
-    STATUS.FINISHED,
   ])("is not offered on %s", (screenName) => {
     room(screenName)
     render(<HostPollLauncher />)
@@ -166,13 +167,13 @@ describe("HostPollLauncher availability", () => {
     expect(maybeLauncher()).toBeNull()
   })
 
-  it("is not offered once the lecture has finished", () => {
-    room(STATUS.SHOW_RESPONSES, {
+  it("is still offered once the lecture has finished, after its podium", () => {
+    room(STATUS.FINISHED, {
       lecture: { ...lectureState, played: [0, 1], current: 1, finished: true },
     })
     render(<HostPollLauncher />)
 
-    expect(maybeLauncher()).toBeNull()
+    expect(maybeLauncher()).toBeInTheDocument()
   })
 
   it("is not offered when the host's controls are hidden", () => {

@@ -14,12 +14,13 @@ import { useEffect, useRef, useState } from "react"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
 
-// A poll may take the room in its lobby or between questions: the screens a
-// lecture room rests on.
+// A poll may take the room in its lobby, between questions, or after the
+// podium: the screens a lecture room rests on.
 const RESTING_SCREENS = new Set<Status>([
   STATUS.SHOW_ROOM,
   STATUS.SHOW_RESPONSES,
   STATUS.SHOW_LEADERBOARD,
+  STATUS.FINISHED,
 ])
 
 /**
@@ -49,7 +50,6 @@ const HostPollLauncher = () => {
   const available =
     Boolean(gameId) &&
     lecture !== null &&
-    !lecture.finished &&
     hostControls &&
     !IS_DECK_EMBED &&
     !showing &&

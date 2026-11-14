@@ -36,8 +36,9 @@
     "confirm": "Entfernen"
   },
   "yourAnswer": "Deine Antwort",
-  "lectureNextQuestion": "Die nächste Frage kommt im Lauf der Vorlesung.",
-  "lectureFinalStandings": "Der Endstand kommt am Ende der Vorlesung.",
+  "lectureNextQuestion": "Die nächste Frage kommt später. Lass diese Seite offen.",
+  "lectureFinalStandings": "Das war die letzte Frage. Als Nächstes kommt der Endstand.",
+  "lectureQuizOver": "Das Quiz ist vorbei. Bleib auf dieser Seite für weitere Umfragen.",
   "lectureJoinHint": "Mitmachen unter {{url}} · PIN {{pin}}",
   "reveal": {
     "time": "ZEIT",

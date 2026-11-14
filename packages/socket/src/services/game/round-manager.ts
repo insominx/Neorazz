@@ -137,6 +137,12 @@ export class RoundManager {
     return this.phase === "results"
   }
 
+  // The podium has shown. A lecture room stays open after it: a poll may
+  // still take the room, and a newcomer may still join to vote in one.
+  isFinished(): boolean {
+    return this.phase === "over"
+  }
+
   // Where the game is, for every screen. A lecture deck plays questions in any
   // order, so it also says which have been played: a phone has no other way to
   // draw its pips or know the final question.
@@ -714,13 +720,27 @@ export class RoundManager {
   }
 
   // Newcomers join in the lobby. A lecture game also lets them in between
-  // questions, never during one, so no round waits on a player who never saw
-  // its question.
+  // questions and after its podium, never during a question, so no round
+  // waits on a player who never saw its question.
   acceptsNewPlayers(): boolean {
     return (
       this.phase === "idle" ||
-      (this.opts.lecture === true && this.phase === "results")
+      (this.opts.lecture === true &&
+        (this.phase === "results" || this.phase === "over"))
     )
+  }
+
+  // What a phone that joins a lecture game after its lobby waits on: the
+  // next question, the final standings once every question has run, or
+  // nothing more from the quiz once the podium has shown.
+  latecomerNote(): string | undefined {
+    if (!this.opts.lecture || this.phase === "idle") {
+      return undefined
+    }
+
+    return this.phase === "over"
+      ? LECTURE_TEXT.QUIZ_OVER
+      : this.lectureNote().note
   }
 
   // `current` is set from the start countdown on: the deck must know the

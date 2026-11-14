@@ -36,8 +36,9 @@
     "confirm": "Exclure"
   },
   "yourAnswer": "Ta réponse",
-  "lectureNextQuestion": "La prochaine question arrive pendant le cours.",
-  "lectureFinalStandings": "Le classement final arrive à la fin du cours.",
+  "lectureNextQuestion": "La prochaine question arrive plus tard. Gardez cette page ouverte.",
+  "lectureFinalStandings": "C'était la dernière question. Le classement final arrive ensuite.",
+  "lectureQuizOver": "Le quiz est terminé. Restez sur cette page pour les sondages éventuels.",
   "lectureJoinHint": "Rejoignez sur {{url}} · PIN {{pin}}",
   "reveal": {
     "time": "TEMPS",

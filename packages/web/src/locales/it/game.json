@@ -36,8 +36,9 @@
     "confirm": "Espelli"
   },
   "yourAnswer": "La tua risposta",
-  "lectureNextQuestion": "La prossima domanda arriva durante la lezione.",
-  "lectureFinalStandings": "La classifica finale arriva alla fine della lezione.",
+  "lectureNextQuestion": "La prossima domanda arriva più tardi. Tieni aperta questa pagina.",
+  "lectureFinalStandings": "Era l'ultima domanda. Ora arriva la classifica finale.",
+  "lectureQuizOver": "Il quiz è finito. Resta su questa pagina per eventuali sondaggi.",
   "lectureJoinHint": "Partecipa su {{url}} · PIN {{pin}}",
   "reveal": {
     "time": "TEMPO",

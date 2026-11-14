@@ -36,8 +36,9 @@
     "confirm": "Expulsar"
   },
   "yourAnswer": "Tu respuesta",
-  "lectureNextQuestion": "La siguiente pregunta llega durante la clase.",
-  "lectureFinalStandings": "La clasificación final llega al final de la clase.",
+  "lectureNextQuestion": "La siguiente pregunta llega más tarde. Mantén esta página abierta.",
+  "lectureFinalStandings": "Esa fue la última pregunta. Ahora viene la clasificación final.",
+  "lectureQuizOver": "El cuestionario ha terminado. Quédate en esta página por si hay encuestas.",
   "lectureJoinHint": "Únete en {{url}} · PIN {{pin}}",
   "reveal": {
     "time": "TIEMPO",

@@ -376,7 +376,7 @@ describe("RoundManager lecture mode", () => {
     expect(sentTo(harness, "manager", STATUS.FINISHED)).toHaveLength(1)
   })
 
-  it("lets newcomers in only between questions", async () => {
+  it("lets newcomers in between questions and after the podium, never during one", async () => {
     const harness = createLectureHarness()
 
     expect(harness.round.acceptsNewPlayers()).toBe(true)
@@ -395,7 +395,7 @@ describe("RoundManager lecture mode", () => {
     expect(harness.round.acceptsNewPlayers()).toBe(true)
 
     harness.round.finish(harness.managerSocket)
-    expect(harness.round.acceptsNewPlayers()).toBe(false)
+    expect(harness.round.acceptsNewPlayers()).toBe(true)
   })
 
   it("keeps a normal game's lobby-only joining", async () => {

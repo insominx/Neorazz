@@ -150,6 +150,48 @@ describe("Game lecture mode", () => {
     })
   })
 
+  it("tells a newcomer after the last question that the final standings are still to come", async () => {
+    const setup = createGame()
+    setup.game.join(createClient("p1", "alice-client").socket, "Alice")
+    await playToResults(setup, 0)
+    await playToResults(setup, 1)
+
+    const late = createClient("p2", "bob-client")
+    setup.game.join(late.socket, "Bobby")
+
+    expect(findEvent(late.emitted, EVENTS.GAME.SUCCESS_JOIN)).toMatchObject({
+      waitText: LECTURE_TEXT.FINAL_STANDINGS,
+    })
+  })
+
+  it("lets a newcomer in after the podium, told the quiz is over, so a later poll counts them", async () => {
+    const setup = createGame()
+    setup.game.join(createClient("p1", "alice-client").socket, "Alice")
+    await playToResults(setup, 0)
+    expect(setup.game.finish(setup.manager.socket)).toBe("accepted")
+
+    const late = createClient("p2", "bob-client")
+    setup.game.join(late.socket, "Bobby")
+
+    expect(findEvent(late.emitted, EVENTS.GAME.SUCCESS_JOIN)).toMatchObject({
+      waitText: LECTURE_TEXT.QUIZ_OVER,
+    })
+    expect(setup.game.players.map(({ username }) => username)).toEqual([
+      "Alice",
+      "Bobby",
+    ])
+
+    setup.game.setPlayerDisconnected("p2")
+    const back = createClient("p2-back", "bob-client")
+    setup.game.reconnectPlayer(back.socket)
+
+    expect(
+      findEvent(back.emitted, EVENTS.PLAYER.SUCCESS_RECONNECT),
+    ).toMatchObject({
+      status: { name: STATUS.WAIT, data: { text: LECTURE_TEXT.QUIZ_OVER } },
+    })
+  })
+
   it("tells the host a reconnected phone's new socket id", () => {
     const setup = createGame()
     setup.game.join(createClient("p1", "alice-client").socket, "Alice")

@@ -34,7 +34,7 @@ In a deck the host's screen is the projector. Four things follow:
 ## Consequences
 
 - Ships with the polls lane (`0004`) and the sealed default, in one publish; common, socket and web deploy together as before. A rolled-back Razzia leaves every deck usable: a poll face on an old Razzia is a slide with a question on it.
-- A poll cannot start once the quiz has finished (the round is over, so `startPoll` answers `busy`); a closing poll goes before the podium.
+- A poll cannot start once the quiz has finished (the round is over, so `startPoll` answers `busy`); a closing poll goes before the podium. (Until 2026-11-14: see that amendment.)
 - `pollsDone` is bounded at 50 entries. A runaway client cannot grow it further.
 - A deck must read `features` before it sends a poll command, and treat `busy` for an id it just started as success.
 - A poll's id is a label, and a deck keeps its labels unique. Two polls with the same id in one room would let a phone's late vote for the first land in the second, because a vote names its poll by id. A deck runs each poll once per room, so this does not arise; a room made by Restart is a new room.
@@ -59,3 +59,14 @@ A deck needs all of `poll`, `pollInline` and `pollReview` to drive polls; on a R
 
 - **A sealed or named poll's arrivals name who has voted, on the projector.** Each voter's name appears under the options as they vote; their pick never does, and a named poll's names beside the votes are still not drawn here. The line above a named poll's question now says that who voted for what is saved and not shown here. An anonymous live poll's arrivals show no name; a named live poll's do, and its phones say the room may see their pick. A deck's live poll face also has no close step: forward leaves with the vote open, and the deck closes it as it goes (the deck runtime's row T28, CST-426 2026-11-13). Names still never cross the bridge: the deck is told nothing new.
 - **A poll is no longer silent.** The bridge's silence is now only "the deck cannot see this page, or a review is up". Under a poll, or a result shown again, the poll lane holds the lobby's bed and join chimes (`pollStage`) and plays only the poll's own vote and heartbeat cues, which the deck's `sound` command mutes like any other.
+
+## Amendment, 2026-11-14: polls after the podium
+
+A talk wanted a poll at the start, the quiz with its podium straight after it, and more polls later, all in one room with one join. The podium ended the poll lane, so the podium had to wait for the last poll.
+
+- A lecture room now rests in three places: the lobby, the results between questions, and after the podium (`RoundManager.isFinished()`). `startPoll` and an inline poll may take the room in any of them; everything else in the lane is unchanged (one activity at a time, `busy` while a poll is open). The quiz itself stays over: `play` and `finish` still answer `finished`.
+- A lecture room also takes newcomers after the podium, so a later poll counts them. A newcomer's phone waits on `game:lectureQuizOver` ("The quiz is over. Stay on this page for any polls."). A newcomer after the last question but before the podium now waits on `game:lectureFinalStandings`, not on the next question.
+- The bridge lists `pollAfterPodium` in `features`. A deck runs a poll after the podium only on a Razzia that lists it; on an older one its poll face stays a slide, as before.
+- The host's own poll launcher is offered on the podium screen too.
+- The two lecture wait lines no longer name the lecture or promise when: "The next question comes later. Keep this page open." and "That was the last question. Final standings come next." (the old "at the end of the lecture" was wrong when the podium follows the quiz, and "lecture" was wrong in a talk).
+- The game's saved result is written once, at the podium; a newcomer after it is not in it. A poll after the podium saves its own record as any poll does.

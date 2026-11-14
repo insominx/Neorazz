@@ -106,6 +106,7 @@ export const NO_TIME_LIMIT = -1
 export const LECTURE_TEXT = {
   NEXT_QUESTION: "game:lectureNextQuestion",
   FINAL_STANDINGS: "game:lectureFinalStandings",
+  QUIZ_OVER: "game:lectureQuizOver",
 } as const
 
 export const MEDIA_TYPES = {

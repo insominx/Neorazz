@@ -36,8 +36,9 @@
     "confirm": "退出させる"
   },
   "yourAnswer": "あなたの回答",
-  "lectureNextQuestion": "次の問題は講義の途中で出題されます。",
-  "lectureFinalStandings": "最終順位は講義の最後に発表されます。",
+  "lectureNextQuestion": "次の問題は後で出題されます。このページを開いたままにしてください。",
+  "lectureFinalStandings": "これが最後の問題でした。次は最終順位です。",
+  "lectureQuizOver": "クイズは終了しました。アンケートがあればこのページに表示されます。",
   "lectureJoinHint": "{{url}} で参加 · PIN {{pin}}",
   "reveal": {
     "time": "終了",

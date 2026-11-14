@@ -158,11 +158,14 @@ export const isPollCommand = (command: DeckCommand): command is PollCommand =>
 // once per room and takes the stage straight from a closed result.
 // `sound`: the `sound` command and `BridgeState.sound`; Razzia's own sound
 // button then shows only with its other controls (the deck's Q key).
+// `pollAfterPodium`: a lecture room still runs polls, and lets newcomers in,
+// once its final standings have shown.
 export const FEATURES: readonly string[] = [
   "poll",
   "pollInline",
   "pollReview",
   "sound",
+  "pollAfterPodium",
 ]
 
 // The poll showing on the stage. Never a name, whatever the poll.

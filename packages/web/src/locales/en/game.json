@@ -40,8 +40,9 @@
     "confirm": "Kick"
   },
   "yourAnswer": "Your answer",
-  "lectureNextQuestion": "The next question comes up during the lecture.",
-  "lectureFinalStandings": "Final standings come up at the end of the lecture.",
+  "lectureNextQuestion": "The next question comes later. Keep this page open.",
+  "lectureFinalStandings": "That was the last question. Final standings come next.",
+  "lectureQuizOver": "The quiz is over. Stay on this page for any polls.",
   "lectureJoinHint": "Join at {{url}} · PIN {{pin}}",
   "reveal": {
     "time": "TIME",

@@ -1,4 +1,4 @@
-import { EVENTS, LECTURE_TEXT } from "@razzia/common/constants"
+import { EVENTS } from "@razzia/common/constants"
 import type {
   GameResult,
   LectureOutcome,
@@ -348,8 +348,8 @@ class Game {
       return
     }
 
-    // A latecomer waits for the next question, not for players.
-    const waitText = lateToLecture ? LECTURE_TEXT.NEXT_QUESTION : undefined
+    // A latecomer waits for what the lecture brings next, not for players.
+    const waitText = this.inLobby ? undefined : this.round.latecomerNote()
     const player = this.playerManager.join(socket, username, waitText)
 
     if (!player) {
@@ -637,13 +637,20 @@ class Game {
     return this.isManager(socket) ? null : "notManager"
   }
 
-  // A poll may take the room in its lobby or between questions, and only when
-  // no other poll is showing.
-  private laneIsBusy(): boolean {
+  // The moments a lecture room rests on, when a poll may take it: the lobby,
+  // the results between questions, and after the podium.
+  private roomAtRest(): boolean {
     return (
-      this.poll.isActive() ||
-      !(this.round.isLobby() || this.round.isBetweenQuestions())
+      this.round.isLobby() ||
+      this.round.isBetweenQuestions() ||
+      this.round.isFinished()
     )
+  }
+
+  // A poll may take the room while it rests, and only when no other poll is
+  // showing.
+  private laneIsBusy(): boolean {
+    return this.poll.isActive() || !this.roomAtRest()
   }
 
   // Starts a stored poll. Any trouble reading it answers `notFound`, so the
@@ -698,10 +705,7 @@ class Game {
       return "invalid"
     }
 
-    if (
-      this.poll.isOpen() ||
-      !(this.round.isLobby() || this.round.isBetweenQuestions())
-    ) {
+    if (this.poll.isOpen() || !this.roomAtRest()) {
       return "busy"
     }
 
