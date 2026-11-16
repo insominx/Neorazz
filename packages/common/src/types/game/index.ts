@@ -1,4 +1,5 @@
 import type { MEDIA_TYPES } from "@razzia/common/constants"
+import type { AskCount } from "@razzia/common/types/ask"
 import type { PollDone } from "@razzia/common/types/poll"
 import type { VisualsConfig } from "@razzia/common/types/visuals"
 
@@ -112,6 +113,11 @@ export interface LectureState {
   // Polls that closed in this room, oldest first, at most 50. Absent until the
   // first one closes, so a room without polls sends what it always did.
   pollsDone?: PollDone[]
+  // The room's question box: how many new questions (at most 10) and whether
+  // phones can send. Absent until the box first changes (an ask arrives or
+  // the box closes), so a room without asks sends what it always did; absent
+  // means none waiting and open. Never a question's text or a name.
+  asks?: AskCount
 }
 
 export type LectureOutcome =
