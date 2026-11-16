@@ -108,8 +108,11 @@ still waiting for that same server unlock. Protocol (same-status payload,
 `ANSWER_GRID_TRACKS` + `answerSlotPlacement` lay out every A–D grid. On the
 stage the grid runs four tracks and each tile spans two, so the odd last tile of
 a three-answer question starts on track two and sits centred under the pair. On
-a phone the tiles are one column, pinned under the prompt. The editor breaks on
-its `@container` (`@xl`) because its tiles sit between two side panels.
+a phone the tiles are one column, pinned under the prompt; a phone on its side
+uses the stage's four tracks again (`short:`), so two rows leave the question
+room. The editor breaks on its `@container` (`@xl`) because its tiles sit
+between two side panels, and below a laptop's width (`lg`) the editor's three
+panes stack (questions, the editor, its settings) and the page scrolls.
 
 ## Medals
 
@@ -132,11 +135,32 @@ gold `#f5c542` / `#9a7412`, silver `#c7d0dc` / `#6b7688`, bronze `#d08a4c` /
   a stage screen, because a viewport breakpoint would give 1280 and 1920
   different layouts. A narrow or portrait window, and every phone, fall back to
   the base (phone) styles.
+- **Off the stage.** A page people play on (the join page, a player's game, a
+  host page too narrow or upright for the stage) keeps the phone layout on any
+  screen. `useSurface` sets `data-play` on `<html>` there, and the root font
+  size grows a little with the screen (`clamp(16px, 6px + 1.6vmin, 20px)`: 16 px
+  on any phone either way up, 18 to 19 px on an iPad or a laptop, 20 px at
+  most), so a tablet or a laptop reads it from arm's length. The game keeps to
+  one centred column (`max-w-xl`, 36 rem) instead of stretching across a wide
+  screen, and the player's bar lines its name, Ask and points up with that
+  column; a screen taller than the room left scrolls inside the column, never
+  under the bar. A phone on its side (under 480 px tall and landscape, never the
+  stage) takes `short:` styles: the sound button floats in its corner, the
+  answers run two by two, and the big type and badges step down, so the
+  question stays on screen above the answers.
+- **Fingers get 44 px.** A control somebody taps is at least 44 px square: the
+  game's own (sound, Ask, the Ask sheet's close, the inbox's buttons)
+  everywhere, and the studio's small icon buttons, steppers and switches under
+  `pointer-coarse:`, so a mouse keeps them compact. Where the drawn control stays
+  small (a switch, the correct-answer mark), a `before:` inset carries the
+  target.
 - **Room-readable type.** Nothing the room has to read is under 2.6875 rem
   (43 px at 1080p, the smallest the back row can make out). Only labels
   (`text-xs`, the question label, HUD labels) may be smaller. Nothing important
   sits in the bottom 8% of the frame (heads in the front rows hide it), so the
-  stage ends with a `5.4rem` spacer. The teacher's controls float over the top
+  stage ends with a spacer of `max(5.4rem, 8vh)`: 5.4 rem is 8% of a 16:9
+  frame, and a taller projector (4:3, 16:10) keeps its own bottom 8% clear
+  too. The teacher's controls float over the top
   corners and take no layout room.
 - **One type tier per question**, decided from its text alone
   (`utils/type-tier.ts`), so the prompt keeps its size from the question screen
@@ -308,6 +332,9 @@ A phone's own game, in three screens beside the verdict (and the tap itself).
 - **Ending** (`PlayerFinished`): a medal disc for ranks 1–3 with confetti that
   bursts and stops, a plain place for everyone else, and points and place among
   all who played.
+- **A poll** (`PlayerPollOverlay`): the question, its options and the hint
+  under them are one group, centred when the screen has room and scrolled from
+  its top when it has not.
 
 ## Poll arrivals
 

@@ -43,11 +43,11 @@
       "label": "Intensità dello show",
       "full": {
         "title": "Completo",
-        "description": "Lampi e colpi sonori a tutto schermo, un faro sulla risposta più scelta e la colonna sonora completa."
+        "description": "Ogni grande momento illumina la sala: luce che sale dal pavimento, anelli di luce, fasci e coriandoli. Un faro sulla risposta più scelta e la colonna sonora completa."
       },
       "calm": {
         "title": "Calmo",
-        "description": "Niente colpi a schermo intero, faro o fasci di luce. Il verdetto avviene sulla tessera. Musica 12 dB più bassa, senza groove durante le risposte."
+        "description": "Le stesse schermate e le stesse parole, senza la luce dei momenti, il faro, i fasci o i coriandoli. Il verdetto avviene sulla tessera. Musica 12 dB più bassa, senza groove durante le risposte."
       },
       "silent": {
         "title": "Silenzioso",

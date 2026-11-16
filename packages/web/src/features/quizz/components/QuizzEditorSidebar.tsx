@@ -120,7 +120,9 @@ const QuizzEditorSidebar = () => {
   }
 
   return (
-    <aside className="bg-surface border-border rounded-rz-lg z-10 m-3 flex w-72 shrink-0 flex-col gap-2 overflow-auto border p-3">
+    // Stacked above the editor (below a laptop's width) the list keeps to
+    // under half the screen and scrolls, so dragging still has a scroller.
+    <aside className="bg-surface border-border rounded-rz-lg z-10 m-3 flex max-h-[45svh] shrink-0 flex-col gap-2 overflow-auto border p-3 lg:max-h-none lg:w-72">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

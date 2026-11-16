@@ -63,7 +63,7 @@ const Configurations = ({ data }: Props) => {
       {/* Fixed height: a tab switch changing the card's height would re-centre
           it (and the logo above it) on every click. Tall tabs scroll inside.
           13rem leaves room for the logo above and the version link below. */}
-      <Card className="border-border bg-surface text-text-body rounded-rz-xl h-[min(42rem,calc(100svh-13rem))] w-full max-w-md border shadow-none">
+      <Card className="border-border bg-surface text-text-body rounded-rz-xl h-[min(42rem,calc(100svh-13rem))] w-full max-w-md border shadow-none sm:max-w-lg sm:p-5">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-text-primary text-lg font-semibold">
             {t("manager:configurationsTitle")}
@@ -71,7 +71,7 @@ const Configurations = ({ data }: Props) => {
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
             <button
-              className="text-text-muted hover:bg-panel hover:text-text-body rounded-rz-sm p-1.5"
+              className="text-text-muted hover:bg-panel hover:text-text-body rounded-rz-sm p-1.5 pointer-coarse:grid pointer-coarse:size-11 pointer-coarse:place-items-center"
               onClick={handleLogout}
               title={t("manager:logout")}
             >

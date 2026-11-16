@@ -236,7 +236,7 @@ const Answers = ({ data }: Props) => {
         {/* The clock, the count, and the line under them. The clock counts to
             the answers opening, then the time left; the count is how many are
             in. On a phone the line crosses the top of the screen instead. */}
-        <div className="stage:grid stage:h-28 stage:grid-cols-[1fr_auto_1fr] stage:px-6 stage:pb-5 relative flex items-end justify-between px-4 pt-2 pb-2">
+        <div className="stage:grid stage:h-28 stage:grid-cols-[1fr_auto_1fr] stage:px-6 stage:pb-5 short:pt-0 short:pb-1 relative flex items-end justify-between px-4 pt-2 pb-2">
           <HudModule
             role="info"
             className={clsx(
@@ -272,7 +272,7 @@ const Answers = ({ data }: Props) => {
 
         <div
           className={clsx(
-            "stage:gap-4 stage:px-0 stage:pb-0 grid gap-2 px-3 pb-3",
+            "stage:gap-4 stage:px-0 stage:pb-0 grid gap-2 px-4 pb-3",
             ANSWER_GRID_TRACKS.stage,
           )}
           style={
@@ -303,7 +303,7 @@ const Answers = ({ data }: Props) => {
         {/* Heads in the front rows hide the bottom 8% of the projected frame. */}
         <div
           aria-hidden="true"
-          className="stage:block stage:h-[5.4rem] hidden"
+          className="stage:block stage:h-[max(5.4rem,8vh)] hidden"
         />
       </div>
     </section>

@@ -91,7 +91,8 @@ const FrameStage = ({
   seed,
   overlay,
 }: Props) => {
-  useSurfaceOverride({ dialect, surface, stage: view === "host" })
+  // A game screen, so off the stage it takes a player's sizing, as on /party.
+  useSurfaceOverride({ dialect, surface, stage: view === "host", play: true })
 
   const socketValue = useMemo<SocketContextValue>(
     () => ({

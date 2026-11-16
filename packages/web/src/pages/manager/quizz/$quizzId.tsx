@@ -62,7 +62,9 @@ const QuizzEditPage = () => {
     >
       <div className="bg-canvas text-text-body relative flex h-svh flex-col">
         <QuizzEditorHeader />
-        <div className="flex flex-1 overflow-hidden">
+        {/* Three panes side by side from a laptop's width; below it they
+            stack (questions, the editor, its settings) and the page scrolls. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
           <QuizzEditorSidebar />
           <QuestionEditor />
         </div>

@@ -104,8 +104,10 @@ describe("Leaderboard", () => {
       <Leaderboard data={{ oldLeaderboard: board, leaderboard: board }} />,
     )
 
+    // The step is the stage's and a wide window's; a phone's compact row
+    // already sets names small.
     for (const name of container.querySelectorAll(".truncate")) {
-      expect(name).toHaveClass("text-3xl")
+      expect(name).toHaveClass("stage:text-[2rem]", "sm:text-3xl")
     }
   })
 
@@ -116,7 +118,8 @@ describe("Leaderboard", () => {
     )
 
     for (const name of container.querySelectorAll(".truncate")) {
-      expect(name).not.toHaveClass("text-3xl")
+      expect(name).not.toHaveClass("sm:text-3xl")
+      expect(name).not.toHaveClass("stage:text-[2rem]")
     }
   })
 

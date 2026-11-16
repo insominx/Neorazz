@@ -9,9 +9,9 @@ const QuestionEditor = () => {
   const { backgroundUrl } = useQuizzEditor()
 
   return (
-    <div className="relative flex flex-1 overflow-hidden">
+    <div className="relative flex flex-col lg:flex-1 lg:flex-row lg:overflow-hidden">
       <Atmosphere recipe="photo" backgroundUrl={backgroundUrl} />
-      <main className="@container relative z-10 mx-auto flex max-w-7xl flex-1 flex-col gap-4 overflow-y-auto p-6">
+      <main className="@container relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 p-4 sm:p-6 lg:overflow-y-auto">
         <QuestionEditorTitle />
         <QuestionEditorMedia />
         <QuestionEditorAnswers />

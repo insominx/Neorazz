@@ -94,7 +94,7 @@ const AskSheetBody = () => {
             type="button"
             aria-label={t("ask:close")}
             onClick={close}
-            className="text-text-muted hover:text-text-primary focus-visible:outline-brand -mr-2 grid size-10 place-items-center rounded-full focus-visible:outline-2"
+            className="text-text-muted hover:text-text-primary focus-visible:outline-brand -mr-2.5 grid size-11 place-items-center rounded-full focus-visible:outline-2"
           >
             <X aria-hidden className="size-5" />
           </button>
@@ -130,9 +130,11 @@ const AskSheetBody = () => {
               >
                 <Switch.Thumb className="bg-text-primary ease-calm block size-4 translate-x-1 rounded-full transition-transform data-[state=checked]:translate-x-5.5" />
               </Switch.Root>
+              {/* The label toggles the switch, so it carries the finger-sized
+                  target the slim switch does not. */}
               <label
                 htmlFor={SIGN_ID}
-                className="text-text-primary text-sm font-semibold"
+                className="text-text-primary py-3 text-sm font-semibold"
               >
                 {t("ask:sign")}
               </label>

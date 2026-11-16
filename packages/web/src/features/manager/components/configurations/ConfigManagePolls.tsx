@@ -133,7 +133,7 @@ const ConfigManagePolls = () => {
               <AlertDialog
                 trigger={
                   <button
-                    className="hover:bg-danger-tint rounded-rz-sm p-2 disabled:opacity-50"
+                    className="hover:bg-danger-tint rounded-rz-sm shrink-0 p-2 disabled:opacity-50 pointer-coarse:grid pointer-coarse:size-11 pointer-coarse:place-items-center"
                     disabled={deletingId !== null}
                     aria-label={t("common:delete")}
                   >
@@ -170,7 +170,7 @@ const ConfigManagePolls = () => {
                   className="border-border bg-surface rounded-rz-md flex w-full items-center justify-between border px-3 py-2.5"
                 >
                   <button
-                    className="min-w-0 flex-1 text-left"
+                    className="min-w-0 flex-1 text-left pointer-coarse:min-h-11"
                     disabled={deletingResultId === result.id}
                     onClick={() => {
                       socket.emit(EVENTS.POLLS.RESULT_GET, result.id)
@@ -195,7 +195,7 @@ const ConfigManagePolls = () => {
                   <AlertDialog
                     trigger={
                       <button
-                        className="hover:bg-danger-tint rounded-rz-sm p-2 disabled:opacity-50"
+                        className="hover:bg-danger-tint rounded-rz-sm shrink-0 p-2 disabled:opacity-50 pointer-coarse:grid pointer-coarse:size-11 pointer-coarse:place-items-center"
                         disabled={deletingResultId !== null}
                         aria-label={t("manager:polls.resultDelete")}
                       >

@@ -26,7 +26,7 @@ const AskButton = () => {
         useAskStore.getState().openSheet()
       }}
       className={clsx(
-        "bg-surface border-border text-text-primary focus-visible:outline-brand ease-calm flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-base font-bold transition-transform focus-visible:outline-2 active:scale-[0.97]",
+        "bg-surface border-border text-text-primary focus-visible:outline-brand ease-calm flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-base font-bold transition-transform focus-visible:outline-2 active:scale-[0.97]",
         !offered && "invisible",
       )}
     >

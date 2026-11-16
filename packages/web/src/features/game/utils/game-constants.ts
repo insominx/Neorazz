@@ -72,11 +72,13 @@ export const MEDAL = [
  * question) can start on track two and sit centred under the pair above it
  * instead of hanging off the left edge. Pair with `answerSlotPlacement`.
  *
- * `stage` is the projector's 2x2 and a phone's single column; `container`
- * breaks on the nearest `@container` for tiles squeezed between editor panels.
+ * `stage` is the projector's 2x2, a phone's single column, and a phone on its
+ * side's 2x2 again (`short:`, so the tiles leave room for the question);
+ * `container` breaks on the nearest `@container` for tiles squeezed between
+ * editor panels.
  */
 export const ANSWER_GRID_TRACKS = {
-  stage: "grid-cols-1 stage:grid-cols-4",
+  stage: "grid-cols-1 stage:grid-cols-4 short:grid-cols-4",
   container: "grid-cols-1 @xl:grid-cols-4",
 } as const
 
@@ -84,8 +86,8 @@ type AnswerGridScope = keyof typeof ANSWER_GRID_TRACKS
 
 const ANSWER_SLOT_PLACEMENT = {
   stage: {
-    pair: "stage:col-span-2",
-    odd: "stage:col-span-2 stage:col-start-2",
+    pair: "stage:col-span-2 short:col-span-2",
+    odd: "stage:col-span-2 stage:col-start-2 short:col-span-2 short:col-start-2",
   },
   container: { pair: "@xl:col-span-2", odd: "@xl:col-span-2 @xl:col-start-2" },
 } as const

@@ -72,7 +72,7 @@ const Question = ({ data }: Props) => {
         />
         <div
           aria-hidden="true"
-          className="stage:block stage:h-[5.4rem] hidden"
+          className="stage:block stage:h-[max(5.4rem,8vh)] hidden"
         />
       </div>
     </section>

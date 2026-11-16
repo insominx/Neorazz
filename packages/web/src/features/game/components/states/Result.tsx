@@ -168,14 +168,17 @@ const Result = ({
         >
           <div
             data-calm={calm || !live ? "" : undefined}
-            className="rz-verdict-badge grid size-32 place-items-center rounded-full text-black"
+            className="rz-verdict-badge short:size-20 grid size-32 place-items-center rounded-full text-black"
             style={{ background: color, boxShadow: `0 0 4rem ${color}88` }}
           >
-            <Glyph className="size-20 stroke-[3.5]" aria-hidden="true" />
+            <Glyph
+              className="short:size-12 size-20 stroke-[3.5]"
+              aria-hidden="true"
+            />
           </div>
           <h2
             data-verdict-title
-            className="text-text-primary text-4xl font-bold"
+            className="text-text-primary short:text-3xl text-4xl font-bold"
           >
             {title}
           </h2>

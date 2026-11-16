@@ -163,11 +163,13 @@ const QuizzEditorHeader = () => {
   })
 
   return (
-    <header className="bg-surface border-border z-20 flex h-14 items-center justify-between gap-4 border-b px-4">
-      <div className="flex items-center gap-6">
+    // On a narrow screen the title takes its own row and the buttons wrap
+    // under it, instead of running off the right edge.
+    <header className="bg-surface border-border z-20 flex min-h-14 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b px-4 py-2 lg:h-14 lg:flex-nowrap lg:py-0">
+      <div className="flex w-full min-w-0 items-center gap-3 sm:w-auto sm:gap-6">
         <Input
           variant="sm"
-          className="w-64"
+          className="min-w-0 flex-1 sm:w-64 sm:flex-none"
           value={subject}
           onChange={handleChangeSubject}
           placeholder={t("quizz:titleQuizzPlaceholder")}
@@ -175,7 +177,7 @@ const QuizzEditorHeader = () => {
         <QuizzBackgroundControl />
       </div>
 
-      <div className="flex gap-2">
+      <div className="ml-auto flex gap-2">
         {isDirty ? (
           <ConfirmDialog
             trigger={

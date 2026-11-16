@@ -158,7 +158,7 @@ const HostPollOverlay = () => {
       {hostControls && !review && (
         <div className="absolute top-4 left-4 z-10">
           <Button
-            className="bg-surface border-border text-text-primary hover:bg-panel border px-4"
+            className="bg-surface border-border text-text-primary hover:bg-panel border px-4 pointer-coarse:min-h-[44px]"
             disabled={pending}
             onClick={() => {
               void send(
@@ -173,7 +173,7 @@ const HostPollOverlay = () => {
         </div>
       )}
 
-      <main className="stage:max-w-[105rem] stage:gap-6 stage:px-0 stage:pb-[5.4rem] stage:pt-[5.5rem] mx-auto flex min-h-0 w-full flex-1 flex-col items-center gap-4 overflow-y-auto px-4 pt-20 pb-6">
+      <main className="stage:max-w-[105rem] stage:gap-6 stage:px-0 stage:pb-[max(5.4rem,8vh)] stage:pt-[5.5rem] mx-auto flex min-h-0 w-full flex-1 flex-col items-center gap-4 overflow-y-auto px-4 pt-20 pb-6">
         <header className="stage:gap-3 flex w-full flex-col items-center gap-2 text-center">
           <p className="text-brand stage:text-[1.5rem] text-xs font-bold tracking-[0.12em] uppercase">
             {closed ? t("poll:host.closedNote") : t("poll:label")}

@@ -221,13 +221,24 @@ const GameWrapper = ({
         ) : (
           <>
             {/* On the stage the controls float over the corners: they are for
-                the teacher, and the room's frame belongs to the question. */}
-            <div className="stage:absolute stage:inset-x-0 stage:top-0 stage:z-20 flex w-full items-center gap-2 p-4">
+                the teacher, and the room's frame belongs to the question. A
+                phone on its side floats its one button the same way, because
+                a row for it would cost the question its room; the empty bar
+                lets taps and scrolls through to the screen under it. */}
+            <div
+              className={clsx(
+                "stage:absolute stage:inset-x-0 stage:top-0 stage:z-20 flex w-full items-center gap-2 p-4",
+                !manager &&
+                  "short:pointer-events-none short:absolute short:inset-x-0 short:top-0 short:z-20 short:p-3",
+              )}
+            >
               <div className="flex flex-1 items-center justify-between">
                 {controls && next && (
                   <Button
                     className={clsx(
-                      "bg-surface border-border text-text-primary hover:bg-panel border px-4",
+                      // The stage scales rem with the frame, so a finger's
+                      // 44 px is in pixels (a teacher hosting from an iPad).
+                      "bg-surface border-border text-text-primary hover:bg-panel border px-4 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px]",
                       {
                         "pointer-events-none": isDisabled,
                       },
@@ -244,7 +255,7 @@ const GameWrapper = ({
                 {controls && onBack && (
                   <Button
                     onClick={onBack}
-                    className="bg-surface border-border text-text-primary hover:bg-panel border px-4"
+                    className="bg-surface border-border text-text-primary hover:bg-panel border px-4 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px]"
                   >
                     {t("common:exit")}
                   </Button>
@@ -253,7 +264,11 @@ const GameWrapper = ({
 
               {/* A lecture deck draws its own sound button while it drives the
                   game; Razzia's shows with the other controls (the deck's Q). */}
-              {(!manager || hostControls) && <VolumeControl />}
+              {(!manager || hostControls) && (
+                <div className="pointer-events-auto">
+                  <VolumeControl />
+                </div>
+              )}
             </div>
 
             {!isConnected && (
@@ -265,22 +280,33 @@ const GameWrapper = ({
               </p>
             )}
 
-            <LayoutGroup id={manager ? "manager-game" : "player-game"}>
-              {children}
-            </LayoutGroup>
+            {/* Off the stage a screen keeps to one column: the phone layout,
+                centred on a tablet or a laptop instead of stretched across it.
+                A screen taller than the room left (a phone on its side)
+                scrolls here instead of spilling under the bar below. The stage
+                composes the whole frame, so there the column is not a box at
+                all. */}
+            <div className="stage:contents mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col justify-center-safe overflow-y-auto overscroll-contain">
+              <LayoutGroup id={manager ? "manager-game" : "player-game"}>
+                {children}
+              </LayoutGroup>
+            </div>
 
             {/* The question button sits between the name and the points and is
                 always laid out, so the bar keeps one height on every screen;
-                a long name gives way rather than wrapping. */}
+                a long name gives way rather than wrapping. The bar runs the
+                full width; what is in it keeps to the game's column. */}
             {!manager && (
-              <div className="bg-panel/70 border-border text-text-body z-50 flex items-center justify-between gap-3 border-t px-4 py-2 text-lg font-bold">
-                <p className="text-text-muted min-w-0 flex-1 truncate">
-                  {player?.username}
-                </p>
-                <AskButton />
-                <div className="flex flex-1 justify-end">
-                  <div className="bg-panel border-border text-text-primary rounded-rz-md border px-3 py-1 font-mono text-lg">
-                    {player?.points}
+              <div className="bg-panel/70 border-border text-text-body short:py-1 z-50 border-t py-2 text-lg font-bold">
+                <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-4">
+                  <p className="text-text-muted min-w-0 flex-1 truncate">
+                    {player?.username}
+                  </p>
+                  <AskButton />
+                  <div className="flex flex-1 justify-end">
+                    <div className="bg-panel border-border text-text-primary rounded-rz-md border px-3 py-1 font-mono text-lg">
+                      {player?.points}
+                    </div>
                   </div>
                 </div>
               </div>

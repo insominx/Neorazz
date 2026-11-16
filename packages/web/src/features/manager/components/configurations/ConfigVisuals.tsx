@@ -358,7 +358,10 @@ const ConfigVisuals = () => {
 
       <div
         className={clsx(
-          "border-border bg-panel focus-visible:outline-brand rounded-rz-md ease-calm relative aspect-video overflow-hidden border-2 transition-colors duration-[var(--rz-dur-fast)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+          // `shrink-0`: the tab is a column as tall as the card, and a clipped
+          // box may shrink to nothing in it, so the preview kept collapsing to
+          // its border whenever the tab ran longer than the card.
+          "border-border bg-panel focus-visible:outline-brand rounded-rz-md ease-calm relative aspect-video shrink-0 overflow-hidden border-2 transition-colors duration-[var(--rz-dur-fast)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
           isDragging && "border-brand-border bg-brand-tint",
           uploading && "pointer-events-none opacity-60",
         )}

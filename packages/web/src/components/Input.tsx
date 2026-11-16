@@ -16,7 +16,7 @@ const Input = ({
     className={clsx(
       "bg-surface text-text-body placeholder:text-text-muted outline-border focus:outline-brand rounded-rz-md font-semibold outline-2",
       variant === "md" && "p-2 text-lg",
-      variant === "sm" && "px-3 py-2 text-sm",
+      variant === "sm" && "px-3 py-2 text-sm pointer-coarse:py-3",
       className,
     )}
     {...otherProps}

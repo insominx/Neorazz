@@ -91,6 +91,26 @@ html[data-stage] {
   font-size: min(calc(100vw / 120), calc(100vh / 67.5));
 }
 
+/* A page people play on (`data-play`, set by `useSurface`: the join page and
+   the game pages, off the stage) keeps the phone layout on every screen and
+   grows a little on a bigger one: 16 px on any phone, either way up, 18 to
+   19 px on an iPad or a laptop, 20 px at most. The game column is in rem, so
+   it widens with the type. */
+html[data-play] {
+  font-size: clamp(16px, calc(6px + 1.6vmin), 20px);
+}
+
+/* A phone on its side: under 480 px tall and wider than tall, and never the
+   stage. `short:` styles tighten a screen so it still fits in one view (the
+   answers keep the question in sight). */
+@custom-variant short {
+  @media (max-height: 30rem) and (orientation: landscape) {
+    html:not([data-stage]) & {
+      @slot;
+    }
+  }
+}
+
 :root {
   color-scheme: dark;
 
@@ -1080,6 +1100,21 @@ html[data-stage] .rz-line {
   display: none;
   font-size: 0.75rem;
   letter-spacing: -0.02em;
+}
+
+/* A phone on its side (the `short:` variant's query): two rows of tiles a
+   little shorter, so the question keeps its place above them. */
+@media (max-height: 30rem) and (orientation: landscape) {
+  html:not([data-stage]) .rz-tile-clip {
+    min-height: 3rem;
+    padding-block: 0.375rem;
+  }
+
+  html:not([data-stage]) .rz-tile-block {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.25rem;
+  }
 }
 
 .rz-tile-text {

@@ -83,85 +83,92 @@ const PlayerPollOverlay = () => {
 
   return (
     <PollFrame backgroundUrl={backgroundUrl} labelledBy={QUESTION_ID}>
-      <main className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col gap-4 overflow-y-auto p-4 pb-6">
-        <header className="flex flex-col gap-2">
-          <p className="text-brand text-xs font-bold tracking-[0.12em] uppercase">
-            {closed ? t("poll:closedTitle") : t("poll:label")}
-          </p>
-          <h2
-            id={QUESTION_ID}
-            className={clsx(
-              "text-text-primary leading-snug font-bold break-words",
-              QUESTION_CLASSES[questionTier(question)],
-            )}
-          >
-            {question}
-          </h2>
-          <p className="text-text-muted text-sm">
-            {anonymous ? t("poll:privacy.anonymous") : t("poll:privacy.named")}
-          </p>
-          {/* The host's screen names each voter as they vote (never beside
+      {/* One group, centred when the screen has room for it (a tablet, a
+          laptop) and scrolled from its top when it does not (a phone on its
+          side), with the hint under the options it is about. */}
+      <main className="short:p-3 mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-y-auto p-4 pb-6">
+        <div className="short:gap-3 my-auto flex flex-col gap-4">
+          <header className="flex flex-col gap-2">
+            <p className="text-brand text-xs font-bold tracking-[0.12em] uppercase">
+              {closed ? t("poll:closedTitle") : t("poll:label")}
+            </p>
+            <h2
+              id={QUESTION_ID}
+              className={clsx(
+                "text-text-primary leading-snug font-bold break-words",
+                QUESTION_CLASSES[questionTier(question)],
+              )}
+            >
+              {question}
+            </h2>
+            <p className="text-text-muted text-sm">
+              {anonymous
+                ? t("poll:privacy.anonymous")
+                : t("poll:privacy.named")}
+            </p>
+            {/* The host's screen names each voter as they vote (never beside
               their pick) in a sealed poll and in a named live one, so the
               phone says so before the tap. A named live poll's bars move with
               the name, and the phone says that too. */}
-          {!closed && (!snapshot.live || !anonymous) && (
-            <p data-poll-arrival-note className="text-text-muted text-sm">
-              {snapshot.live
-                ? t("poll:arrival.playerNoteLive")
-                : t("poll:arrival.playerNote")}
-            </p>
-          )}
-        </header>
+            {!closed && (!snapshot.live || !anonymous) && (
+              <p data-poll-arrival-note className="text-text-muted text-sm">
+                {snapshot.live
+                  ? t("poll:arrival.playerNoteLive")
+                  : t("poll:arrival.playerNote")}
+              </p>
+            )}
+          </header>
 
-        {closed ? (
-          <PollBars
-            options={options}
-            counts={snapshot.counts ?? options.map(() => 0)}
-            total={snapshot.total ?? 0}
-            mine={mine}
-          />
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {options.map((option, index) => (
-              <li key={index}>
-                <button
-                  type="button"
-                  aria-pressed={mine === index}
-                  data-poll-choice={index}
-                  className={clsx(
-                    "bg-glass border-border rounded-rz-lg ease-calm flex min-h-16 w-full items-center gap-3 border p-3 text-left transition-transform active:scale-[0.98]",
-                    mine === index && "outline-text-primary outline-2",
-                  )}
-                  onClick={() => {
-                    void vote(index)
-                  }}
-                >
-                  <span className="bg-panel border-border text-text-primary rounded-rz-md grid size-11 shrink-0 place-items-center border font-mono text-lg font-bold">
-                    {LETTERS[index]}
-                  </span>
-                  <span
+          {closed ? (
+            <PollBars
+              options={options}
+              counts={snapshot.counts ?? options.map(() => 0)}
+              total={snapshot.total ?? 0}
+              mine={mine}
+            />
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {options.map((option, index) => (
+                <li key={index}>
+                  <button
+                    type="button"
+                    aria-pressed={mine === index}
+                    data-poll-choice={index}
                     className={clsx(
-                      "text-text-primary min-w-0 flex-1 font-semibold break-words",
-                      OPTION_CLASSES[tier],
+                      "bg-glass border-border rounded-rz-lg ease-calm short:min-h-12 short:py-1.5 flex min-h-16 w-full items-center gap-3 border p-3 text-left transition-transform active:scale-[0.98]",
+                      mine === index && "outline-text-primary outline-2",
                     )}
+                    onClick={() => {
+                      void vote(index)
+                    }}
                   >
-                    {option}
-                  </span>
-                  {mine === index && (
-                    <Check
-                      aria-label={t("poll:yourVote")}
-                      className="text-brand size-6 shrink-0 stroke-3"
-                    />
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+                    <span className="bg-panel border-border text-text-primary rounded-rz-md grid size-11 shrink-0 place-items-center border font-mono text-lg font-bold">
+                      {LETTERS[index]}
+                    </span>
+                    <span
+                      className={clsx(
+                        "text-text-primary min-w-0 flex-1 font-semibold break-words",
+                        OPTION_CLASSES[tier],
+                      )}
+                    >
+                      {option}
+                    </span>
+                    {mine === index && (
+                      <Check
+                        aria-label={t("poll:yourVote")}
+                        className="text-brand size-6 shrink-0 stroke-3"
+                      />
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
 
-        <p className="text-text-muted mt-auto pt-2 text-sm">
-          {closed ? t("poll:waitingForHost") : t("poll:changeHint")}
-        </p>
+          <p className="text-text-muted text-sm">
+            {closed ? t("poll:waitingForHost") : t("poll:changeHint")}
+          </p>
+        </div>
       </main>
     </PollFrame>
   )

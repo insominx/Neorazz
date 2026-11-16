@@ -50,7 +50,7 @@ const PlayerFinished = ({ data: { rank, subject, total, points } }: Props) => {
   }, [bursting])
 
   return (
-    <section className="animate-rz-fade-in relative flex h-full flex-1 flex-col items-center justify-center gap-5 px-4 text-center">
+    <section className="animate-rz-fade-in short:gap-3 relative flex h-full flex-1 flex-col items-center justify-center gap-5 px-4 text-center">
       {bursting && (
         <ReactConfetti
           recycle={false}
@@ -65,7 +65,7 @@ const PlayerFinished = ({ data: { rank, subject, total, points } }: Props) => {
       <div
         data-finish-medal={podium ? rank : undefined}
         className={clsx(
-          "grid size-40 place-items-center rounded-full border-4 text-7xl font-extrabold",
+          "short:size-24 short:text-5xl grid size-40 place-items-center rounded-full border-4 text-7xl font-extrabold",
           podium
             ? MEDAL[rank - 1]
             : "border-border bg-surface text-text-primary",

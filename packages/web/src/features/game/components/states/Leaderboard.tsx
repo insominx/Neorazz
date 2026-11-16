@@ -46,7 +46,7 @@ const StreakBadge = ({ streak }: { streak: number }) => (
         transition={{ duration: 0.5, ease: CALM_EASE }}
         className="bg-warning-tint border-warning-border text-warning ml-2 flex shrink-0 items-center gap-1 rounded-full border p-1"
       >
-        <Fire className="size-7" />
+        <Fire className="stage:size-7 size-5" />
       </motion.div>
     )}
   </AnimatePresence>
@@ -56,7 +56,7 @@ const RankBadge = ({ rank }: { rank: number }) => (
   <span
     data-rank-badge={rank}
     className={clsx(
-      "rounded-rz-md flex size-16 shrink-0 items-center justify-center border-2 font-mono text-4xl font-bold tabular-nums",
+      "rounded-rz-md stage:size-16 stage:text-4xl flex size-10 shrink-0 items-center justify-center border-2 font-mono text-2xl font-bold tabular-nums",
       rank <= MEDAL.length
         ? MEDAL[rank - 1]
         : "border-border bg-surface text-text-muted",
@@ -74,7 +74,7 @@ const PlaceChange = ({ change }: { change: number }) => (
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.4, ease: CALM_EASE }}
     className={clsx(
-      "shrink-0 rounded-full border px-3 font-mono text-2xl font-bold tabular-nums",
+      "stage:px-3 stage:text-2xl shrink-0 rounded-full border px-2 font-mono text-sm font-bold tabular-nums",
       change > 0
         ? "bg-success-tint border-success-border text-success"
         : "bg-danger-tint border-danger-border text-danger",
@@ -151,7 +151,7 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
   const commentary = boardCommentary(oldLeaderboard, leaderboard)
 
   return (
-    <section className="animate-rz-screen-in relative mx-auto flex w-full max-w-[96rem] flex-1 flex-col items-center justify-center px-2">
+    <section className="animate-rz-screen-in stage:px-2 relative mx-auto flex w-full max-w-[96rem] flex-1 flex-col items-center justify-center px-4">
       <h2 className="text-text-primary stage:text-6xl mb-8 text-5xl font-bold">
         {t("game:leaderboard")}
       </h2>
@@ -187,17 +187,20 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
                   layout: { duration: BOARD_SWAP_MS / 1_000, ease: CALM_EASE },
                 }}
                 data-leaderboard-row
-                className="bg-panel border-border text-text-primary rounded-rz-lg stage:text-[2.75rem] flex w-full items-center gap-5 border p-3 text-4xl font-bold"
+                // The projector's sizes are `stage:`; a host page too narrow for
+                // the stage (a phone) gets a compact row that fits its width.
+                className="bg-panel border-border text-text-primary rounded-rz-lg stage:gap-5 stage:p-3 stage:text-[2.75rem] stage:leading-[calc(2.5/2.25)] flex w-full items-center gap-3 border p-2 text-xl font-bold"
               >
                 <RankBadge rank={place} />
 
                 {/* A name can be twenty characters and the bars do not need the
-                    room, so the name gets a third of the row. */}
-                <span className="flex w-[34%] min-w-0 shrink-0 items-center gap-2">
+                    room, so the name gets a third of the row. On a phone the
+                    name takes the room and the bars step aside. */}
+                <span className="stage:w-[34%] stage:flex-none flex min-w-0 flex-1 items-center gap-2 sm:w-[34%] sm:flex-none">
                   <span
                     className={clsx(
                       "truncate",
-                      hasLongName && "stage:text-[2rem] text-3xl",
+                      hasLongName && "stage:text-[2rem] sm:text-3xl",
                     )}
                   >
                     {username}
@@ -207,7 +210,7 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
 
                 <span
                   data-board-track
-                  className="bg-surface relative h-12 min-w-0 flex-1 overflow-hidden rounded-full"
+                  className="bg-surface stage:block stage:h-12 relative hidden h-8 min-w-0 flex-1 overflow-hidden rounded-full sm:block"
                 >
                   <span
                     data-board-bar
@@ -219,7 +222,7 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
                   />
                 </span>
 
-                <span className="flex min-w-[15rem] shrink-0 items-center justify-end gap-3 font-mono">
+                <span className="stage:min-w-[15rem] stage:gap-3 flex shrink-0 items-center justify-end gap-1.5 font-mono sm:min-w-[10rem]">
                   <AnimatePresence>
                     {swapped && gained > 0 && (
                       <motion.span
@@ -228,7 +231,7 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
                         initial={{ opacity: 0, x: 12 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, ease: CALM_EASE }}
-                        className="bg-success-tint border-success-border text-success shrink-0 rounded-full border px-3 py-0.5 text-2xl"
+                        className="bg-success-tint border-success-border text-success stage:px-3 stage:text-2xl shrink-0 rounded-full border px-2 py-0.5 text-sm"
                       >
                         +{gained}
                       </motion.span>
