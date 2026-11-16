@@ -65,7 +65,7 @@ const Room = ({ data: { text, inviteCode } }: Props) => {
   const qrValue = `${webUrl}?pin=${inviteCode}`
 
   return (
-    <section className="animate-rz-screen-in relative mx-auto flex w-full max-w-[110rem] flex-1 flex-col items-center justify-center gap-10 px-4 pb-[5.4rem] lg:flex-row lg:items-center lg:gap-16">
+    <section className="animate-rz-screen-in relative mx-auto flex w-full max-w-[110rem] flex-1 flex-col items-center justify-center gap-10 px-4 pb-[max(5.4rem,8vh)] lg:flex-row lg:items-center lg:gap-16">
       {/* How to get in: address, PIN, and the code to scan. */}
       <div
         data-lobby-join

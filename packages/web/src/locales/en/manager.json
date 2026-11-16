@@ -43,11 +43,11 @@
       "label": "Show intensity",
       "full": {
         "title": "Full",
-        "description": "Light and sound hits that fill the whole frame, a spotlight on the most-picked answer, and the full score."
+        "description": "Each big moment lights the room: light rising from the floor, rings of light, beams and confetti. A spotlight on the most-picked answer, and the full score."
       },
       "calm": {
         "title": "Calm",
-        "description": "No full-frame hits, spotlight or beams. The verdict happens on the tile. Music 12 dB quieter, with no groove while answering."
+        "description": "The same screens and words, without the moments' light, the spotlight, the beams or the confetti. The verdict happens on the tile. Music 12 dB quieter, with no groove while answering."
       },
       "silent": {
         "title": "Silent",

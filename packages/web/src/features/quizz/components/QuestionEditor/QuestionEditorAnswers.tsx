@@ -67,14 +67,14 @@ const QuestionEditorAnswers = () => {
           <button
             onClick={removeAnswer}
             disabled={currentQuestion.answers.length <= 2}
-            className="bg-panel border-border text-text-body hover:bg-brand-tint rounded-rz-md ease-calm flex size-7 items-center justify-center border transition-colors disabled:opacity-40"
+            className="bg-panel border-border text-text-body hover:bg-brand-tint rounded-rz-md ease-calm flex size-7 items-center justify-center border transition-colors disabled:opacity-40 pointer-coarse:size-11"
           >
             <Minus className="size-4" />
           </button>
           <button
             onClick={addAnswer}
             disabled={currentQuestion.answers.length >= 4}
-            className="bg-panel border-border text-text-body hover:bg-brand-tint rounded-rz-md ease-calm flex size-7 items-center justify-center border transition-colors disabled:opacity-40"
+            className="bg-panel border-border text-text-body hover:bg-brand-tint rounded-rz-md ease-calm flex size-7 items-center justify-center border transition-colors disabled:opacity-40 pointer-coarse:size-11"
           >
             <Plus className="size-4" />
           </button>
@@ -112,7 +112,8 @@ const QuestionEditorAnswers = () => {
                   type="button"
                   onClick={() => toggleSolution(i)}
                   className={clsx(
-                    "ease-calm flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                    // A finger's 44 px hit area around the 24 px mark.
+                    "ease-calm relative flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors pointer-coarse:before:absolute pointer-coarse:before:-inset-2.5",
                     isSelected
                       ? "border-success-border bg-success-tint text-success"
                       : "border-border text-text-muted bg-transparent",

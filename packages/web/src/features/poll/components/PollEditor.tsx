@@ -304,7 +304,7 @@ const PollEditor = ({ initial }: Props) => {
                       letter: LETTERS[index],
                     })}
                     disabled={options.length <= POLL_LIMITS.MIN_OPTIONS}
-                    className="text-text-muted hover:bg-panel hover:text-text-body rounded-rz-sm p-2 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="text-text-muted hover:bg-panel hover:text-text-body rounded-rz-sm shrink-0 p-2 disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:grid pointer-coarse:size-11 pointer-coarse:place-items-center"
                     onClick={() => {
                       removeOption(option.key)
                     }}
@@ -319,7 +319,7 @@ const PollEditor = ({ initial }: Props) => {
                 {t("poll:editor.optionsHint")}
               </p>
               <Button
-                className="bg-panel border-border text-text-body border px-3 py-1.5 text-sm"
+                className="bg-panel border-border text-text-body shrink-0 border px-3 py-1.5 text-sm whitespace-nowrap pointer-coarse:min-h-11"
                 disabled={options.length >= POLL_LIMITS.MAX_OPTIONS}
                 onClick={addOption}
               >
@@ -347,7 +347,7 @@ const PollEditor = ({ initial }: Props) => {
               id="poll-anonymous"
               checked={anonymous}
               onCheckedChange={setAnonymous}
-              className="bg-panel focus-visible:outline-brand data-[state=checked]:bg-brand ease-calm relative h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors focus-visible:outline-2"
+              className="bg-panel focus-visible:outline-brand data-[state=checked]:bg-brand ease-calm relative h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors focus-visible:outline-2 pointer-coarse:before:absolute pointer-coarse:before:-inset-3"
             >
               <Switch.Thumb className="bg-surface border-border ease-calm block size-4 translate-x-0.5 rounded-full border transition-transform data-[state=checked]:translate-x-4.5" />
             </Switch.Root>
@@ -369,7 +369,7 @@ const PollEditor = ({ initial }: Props) => {
               id="poll-live"
               checked={live}
               onCheckedChange={setLive}
-              className="bg-panel focus-visible:outline-brand data-[state=checked]:bg-brand ease-calm relative h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors focus-visible:outline-2"
+              className="bg-panel focus-visible:outline-brand data-[state=checked]:bg-brand ease-calm relative h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors focus-visible:outline-2 pointer-coarse:before:absolute pointer-coarse:before:-inset-3"
             >
               <Switch.Thumb className="bg-surface border-border ease-calm block size-4 translate-x-0.5 rounded-full border transition-transform data-[state=checked]:translate-x-4.5" />
             </Switch.Root>

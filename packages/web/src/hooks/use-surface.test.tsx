@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   isHostGamePath,
   isLightRegister,
+  isPlayPath,
   resolveRegister,
   STAGE_QUERY,
 } from "@razzia/web/hooks/use-surface"
@@ -137,5 +138,79 @@ describe("stage scale", () => {
     )
 
     expect(document.documentElement.dataset.stage).toBeUndefined()
+  })
+})
+
+describe("play sizing", () => {
+  const originalMatchMedia = window.matchMedia
+
+  const stubLandscapeWindow = (matches: boolean) => {
+    window.matchMedia = vi.fn((query: string) => ({
+      matches: query === STAGE_QUERY ? matches : false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })) as unknown as typeof window.matchMedia
+  }
+
+  beforeEach(() => {
+    delete document.documentElement.dataset.play
+    delete document.documentElement.dataset.stage
+  })
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia
+    delete document.documentElement.dataset.play
+    delete document.documentElement.dataset.stage
+  })
+
+  it("knows the pages people play on: the join page and the game pages", () => {
+    expect(isPlayPath("/")).toBe(true)
+    expect(isPlayPath("/party/123")).toBe(true)
+    expect(isPlayPath("/party/manager/123")).toBe(true)
+    expect(isPlayPath("/manager/config")).toBe(false)
+    expect(isPlayPath("/manager/questions")).toBe(false)
+    expect(isPlayPath("/rehearse")).toBe(false)
+  })
+
+  it("marks a play page off the stage, and clears the mark on the way out", async () => {
+    stubLandscapeWindow(false)
+    const { useSurface } = await import("@razzia/web/hooks/use-surface")
+
+    const { unmount } = renderHook(() =>
+      useSurface({ dialect: "dark-everywhere", surface: "stage", play: true }),
+    )
+
+    expect(document.documentElement.dataset.play).toBe("")
+
+    unmount()
+    expect(document.documentElement.dataset.play).toBeUndefined()
+  })
+
+  it("never marks the stage, whose scale is the slide's", async () => {
+    stubLandscapeWindow(true)
+    const { useSurface } = await import("@razzia/web/hooks/use-surface")
+
+    renderHook(() =>
+      useSurface({
+        dialect: "dark-everywhere",
+        surface: "stage",
+        stage: true,
+        play: true,
+      }),
+    )
+
+    expect(document.documentElement.dataset.stage).toBe("")
+    expect(document.documentElement.dataset.play).toBeUndefined()
+  })
+
+  it("leaves the studio at its own size", async () => {
+    stubLandscapeWindow(false)
+    const { useSurface } = await import("@razzia/web/hooks/use-surface")
+
+    // The router mock is on /manager/config.
+    renderHook(() => useSurface())
+
+    expect(document.documentElement.dataset.play).toBeUndefined()
   })
 })

@@ -42,10 +42,10 @@ const Standing = ({
   const moved = previousRank === null ? 0 : previousRank - rank
 
   return (
-    <section className="animate-rz-fade-in relative mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4">
+    <section className="animate-rz-fade-in short:gap-2 short:py-2 relative mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4">
       <p
         data-standing-rank
-        className="text-text-primary text-center text-6xl font-extrabold"
+        className="text-text-primary short:text-3xl text-center text-6xl font-extrabold"
       >
         {formatRank(t, rank)}
       </p>
@@ -80,7 +80,7 @@ const Standing = ({
             key={index}
             data-standing-row={row.me ? "me" : "other"}
             className={clsx(
-              "rounded-rz-md flex items-center gap-3 px-4 py-3 text-lg font-semibold",
+              "rounded-rz-md short:py-1 flex items-center gap-3 px-4 py-3 text-lg font-semibold",
               row.me ? "bg-brand text-on-accent" : "bg-glass text-text-primary",
             )}
           >
@@ -95,7 +95,7 @@ const Standing = ({
 
       <p
         data-standing-line
-        className="text-text-muted text-center text-base font-semibold"
+        className="text-text-muted short:text-sm text-center text-base font-semibold"
       >
         {gapLine(t, behind)}
       </p>

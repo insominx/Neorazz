@@ -112,7 +112,7 @@ const QuizzEditorCard = ({
                 aria-label={t("quizz:question.deleteQuestion")}
                 onClick={(e) => e.stopPropagation()}
                 className={clsx(
-                  "bg-surface text-text-faint hover:bg-danger-tint hover:text-danger rounded-rz-sm ease-calm absolute top-1.5 right-1.5 p-1 transition group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100",
+                  "bg-surface text-text-faint hover:bg-danger-tint hover:text-danger rounded-rz-sm ease-calm absolute top-1.5 right-1.5 p-1 transition group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100 pointer-coarse:before:absolute pointer-coarse:before:-inset-2.5",
                   isActive ? "opacity-100" : "opacity-0",
                 )}
               >

@@ -50,7 +50,7 @@ const HudModule = ({
       data-hud-value
       className={clsx(
         "font-display leading-none font-bold tabular-nums",
-        "stage:text-[5rem] text-[2.25rem]",
+        "stage:text-[5rem] short:text-[1.75rem] text-[2.25rem]",
         urgent ? "text-warning rz-hud-hot" : "text-text-primary",
         !urgent && flash > 0 && "rz-hud-flash",
       )}

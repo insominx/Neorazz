@@ -20,7 +20,7 @@ const LanguageSwitcher = () => {
       value={normalizedLanguage}
       onValueChange={(lang) => i18n.changeLanguage(lang)}
     >
-      <Select.Trigger className="border-border bg-surface text-text-body hover:border-brand rounded-rz-md ease-calm flex cursor-pointer items-center gap-1.5 border px-2 py-1.5 text-sm font-semibold transition-colors focus:outline-none">
+      <Select.Trigger className="border-border bg-surface text-text-body hover:border-brand rounded-rz-md ease-calm flex cursor-pointer items-center gap-1.5 border px-2 py-1.5 text-sm font-semibold transition-colors focus:outline-none pointer-coarse:min-h-11 pointer-coarse:px-3">
         <Globe className="text-text-muted size-4" />
         <Select.Value>{normalizedLanguage.toUpperCase()}</Select.Value>
       </Select.Trigger>

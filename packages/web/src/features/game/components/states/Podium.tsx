@@ -249,7 +249,7 @@ const Podium = ({ data: { subject, top } }: Props) => {
         />
       )}
 
-      <section className="animate-rz-screen-in relative mx-auto flex w-full max-w-[100rem] flex-1 flex-col items-center justify-between overflow-x-clip pb-[5.4rem]">
+      <section className="animate-rz-screen-in relative mx-auto flex w-full max-w-[100rem] flex-1 flex-col items-center justify-between overflow-x-clip pb-[max(5.4rem,8vh)]">
         <h2 className="text-text-primary mt-6 text-center text-6xl font-bold">
           {subject}
         </h2>

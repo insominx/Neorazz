@@ -4,7 +4,8 @@ import Logo from "@razzia/web/components/Logo"
 import type { PropsWithChildren } from "react"
 
 const Background = ({ children }: PropsWithChildren) => (
-  <section className="relative flex min-h-dvh flex-col items-center justify-center">
+  // The side gutter keeps a card off a phone's edges.
+  <section className="relative flex min-h-dvh flex-col items-center justify-center px-4">
     <Atmosphere recipe="ambient" />
 
     {/* Positioned so it paints above the absolute Atmosphere layer. */}

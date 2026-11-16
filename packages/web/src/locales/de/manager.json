@@ -43,11 +43,11 @@
       "label": "Show-Intensität",
       "full": {
         "title": "Voll",
-        "description": "Licht- und Klangschläge über das ganze Bild, ein Scheinwerfer auf die meistgewählte Antwort und die volle Musik."
+        "description": "Jeder große Moment erhellt den Raum: Licht vom Boden, Lichtringe, Strahlen und Konfetti. Ein Scheinwerfer auf die meistgewählte Antwort und die volle Musik."
       },
       "calm": {
         "title": "Ruhig",
-        "description": "Keine bildfüllenden Schläge, kein Scheinwerfer, keine Lichtstrahlen. Das Urteil erscheint auf der Kachel. Musik 12 dB leiser, ohne Groove beim Antworten."
+        "description": "Dieselben Bildschirme und Worte, ohne das Licht der Momente, Scheinwerfer, Strahlen oder Konfetti. Das Urteil erscheint auf der Kachel. Musik 12 dB leiser, ohne Groove beim Antworten."
       },
       "silent": {
         "title": "Stumm",

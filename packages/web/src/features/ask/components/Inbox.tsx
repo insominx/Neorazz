@@ -57,8 +57,10 @@ const useTimeFormat = () => {
   }
 }
 
+// The presenter taps these on a phone during the talk: 44 px tall, a finger's
+// size, though the type stays small.
 const SMALL_BUTTON =
-  "bg-panel border-border text-text-primary rounded-rz-md border px-3 py-1.5 text-sm font-semibold"
+  "bg-panel border-border text-text-primary rounded-rz-md inline-flex min-h-11 items-center justify-center border px-3.5 text-sm font-semibold"
 
 const AskItem = ({ ask, recordId }: { ask: Ask; recordId: string }) => {
   const { socket } = useSocket()
@@ -271,7 +273,7 @@ const RoomBlock = ({ room }: { room: AskRoomView }) => {
           aria-pressed={!room.open}
           onClick={toggle}
           className={clsx(
-            "rounded-rz-md flex items-center gap-2 border px-4 py-2 text-base font-bold",
+            "rounded-rz-md flex min-h-11 items-center gap-2 border px-4 py-2 text-base font-bold",
             room.open
               ? "bg-panel border-border text-text-primary"
               : "bg-warning text-on-accent border-warning",

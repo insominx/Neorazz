@@ -161,7 +161,7 @@ const ConfigManageQuizz = () => {
                 <AlertDialog
                   trigger={
                     <button
-                      className="text-text-muted hover:bg-panel hover:text-text-body rounded-rz-sm p-2 disabled:opacity-50"
+                      className="text-text-muted hover:bg-panel hover:text-text-body rounded-rz-sm shrink-0 p-2 disabled:opacity-50 pointer-coarse:grid pointer-coarse:size-11 pointer-coarse:place-items-center"
                       disabled={restoringId !== null || deletingId !== null}
                       aria-label={t("manager:quizz.restore")}
                       title={t("manager:quizz.restore")}
@@ -178,7 +178,7 @@ const ConfigManageQuizz = () => {
                 />
               )}
               <button
-                className="text-text-muted hover:bg-panel hover:text-text-body rounded-rz-sm p-2 disabled:opacity-50"
+                className="text-text-muted hover:bg-panel hover:text-text-body rounded-rz-sm shrink-0 p-2 disabled:opacity-50 pointer-coarse:grid pointer-coarse:size-11 pointer-coarse:place-items-center"
                 disabled={deletingId === q.id}
                 onClick={() =>
                   navigate({
@@ -193,7 +193,7 @@ const ConfigManageQuizz = () => {
               <AlertDialog
                 trigger={
                   <button
-                    className="hover:bg-danger-tint rounded-rz-sm p-2 disabled:opacity-50"
+                    className="hover:bg-danger-tint rounded-rz-sm shrink-0 p-2 disabled:opacity-50 pointer-coarse:grid pointer-coarse:size-11 pointer-coarse:place-items-center"
                     disabled={deletingId !== null}
                     aria-label={t("common:delete")}
                   >

@@ -19,6 +19,11 @@ export interface SurfaceOverride {
   surface: Surface
   /** Scale the page like a slide. Defaults to on for the host's game page. */
   stage?: boolean
+  /**
+   * Grow the phone layout a little on a bigger screen. Defaults to on for the
+   * join page and the game pages; a stage never has it.
+   */
+  play?: boolean
 }
 
 /**
@@ -30,6 +35,14 @@ export const STAGE_QUERY = "(min-width: 1024px) and (orientation: landscape)"
 
 export const isHostGamePath = (pathname: string): boolean =>
   pathname.startsWith("/party/manager/")
+
+/**
+ * The pages people play on: the join page and the game pages. Off the stage
+ * they keep the phone layout on any screen, a little larger on a tablet or a
+ * laptop (`html[data-play]` in `index.css`).
+ */
+export const isPlayPath = (pathname: string): boolean =>
+  pathname === "/" || pathname.startsWith("/party/")
 
 export const SurfaceOverrideContext = createContext<
   ((override: SurfaceOverride | null) => void) | null
@@ -49,6 +62,7 @@ export const useSurfaceOverride = ({
   dialect,
   surface,
   stage,
+  play,
 }: SurfaceOverride) => {
   const setOverride = useContext(SurfaceOverrideContext)
 
@@ -57,12 +71,12 @@ export const useSurfaceOverride = ({
   }
 
   useLayoutEffect(() => {
-    setOverride({ dialect, surface, stage })
+    setOverride({ dialect, surface, stage, play })
 
     return () => {
       setOverride(null)
     }
-  }, [dialect, setOverride, stage, surface])
+  }, [dialect, play, setOverride, stage, surface])
 }
 
 const applyRegister = (register: Register) => {
@@ -104,6 +118,14 @@ const applyStage = (stage: boolean) => {
   }
 }
 
+const applyPlay = (play: boolean) => {
+  if (play) {
+    document.documentElement.dataset.play = ""
+  } else {
+    delete document.documentElement.dataset.play
+  }
+}
+
 export const useSurface = (override: SurfaceOverride | null = null) => {
   const dialect =
     useManagerStore((state) => state.config?.game.visuals?.dialect) ??
@@ -120,6 +142,7 @@ export const useSurface = (override: SurfaceOverride | null = null) => {
   const register = resolveRegister(activeDialect, surface)
   const roomy = useMatchMedia(STAGE_QUERY)
   const stage = (override?.stage ?? isHostGamePath(pathname)) && roomy
+  const play = (override?.play ?? isPlayPath(pathname)) && !stage
 
   useLayoutEffect(() => {
     applyRegister(register)
@@ -129,10 +152,15 @@ export const useSurface = (override: SurfaceOverride | null = null) => {
     applyStage(stage)
   }, [stage])
 
+  useLayoutEffect(() => {
+    applyPlay(play)
+  }, [play])
+
   useLayoutEffect(
     () => () => {
       clearRegister()
       applyStage(false)
+      applyPlay(false)
     },
     [],
   )

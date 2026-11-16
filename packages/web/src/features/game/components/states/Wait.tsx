@@ -97,7 +97,7 @@ const Wait = ({ data: { text, answered, total } }: Props) => {
           {lobby && player && (
             <p
               data-youre-in
-              className="text-brand mb-6 text-center text-4xl font-extrabold"
+              className="text-brand short:mb-3 short:text-3xl mb-6 text-center text-4xl font-extrabold"
             >
               {t("game:youreIn", { name: player.username })}
             </p>
@@ -122,7 +122,7 @@ const Wait = ({ data: { text, answered, total } }: Props) => {
             />
             {isConnected ? t("game:connectedBadge") : t("common:reconnecting")}
           </p>
-          <h2 className="text-text-primary mt-6 text-center text-3xl font-bold">
+          <h2 className="text-text-primary short:mt-3 short:text-2xl mt-6 text-center text-3xl font-bold">
             {t(lobby ? "game:waitingForHost" : text)}
           </h2>
           {lobby && (

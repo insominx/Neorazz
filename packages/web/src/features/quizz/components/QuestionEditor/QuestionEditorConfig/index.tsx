@@ -26,7 +26,7 @@ const QuestionEditorConfig = () => {
   }
 
   return (
-    <aside className="bg-surface border-border rounded-rz-lg z-10 m-3 flex w-68 shrink-0 flex-col gap-6 self-start overflow-auto border p-4">
+    <aside className="bg-surface border-border rounded-rz-lg z-10 m-3 flex shrink-0 flex-col gap-6 overflow-auto border p-4 lg:w-68 lg:self-start">
       <ConfigSection title={t("quizz:question.config.timings")}>
         <ConfigField>
           <ConfigField.Label
@@ -54,7 +54,7 @@ const QuestionEditorConfig = () => {
               <Switch.Root
                 checked={isTimeLimitEnabled}
                 onCheckedChange={handleToggleTimeLimit}
-                className="bg-panel focus-visible:outline-brand data-[state=checked]:bg-brand ease-calm relative h-5 w-9 cursor-pointer rounded-full transition-colors focus-visible:outline-2"
+                className="bg-panel focus-visible:outline-brand data-[state=checked]:bg-brand ease-calm relative h-5 w-9 cursor-pointer rounded-full transition-colors focus-visible:outline-2 pointer-coarse:before:absolute pointer-coarse:before:-inset-3"
               >
                 <Switch.Thumb className="bg-surface border-border ease-calm block size-4 translate-x-0.5 rounded-full border transition-transform data-[state=checked]:translate-x-4.5" />
               </Switch.Root>

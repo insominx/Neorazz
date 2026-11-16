@@ -43,11 +43,11 @@
       "label": "Intensité du show",
       "full": {
         "title": "Complet",
-        "description": "Flashs lumineux et coups sonores sur tout l'écran, un projecteur sur la réponse la plus choisie et la musique complète."
+        "description": "Chaque grand moment éclaire la salle, avec une lumière qui monte du sol, des anneaux de lumière, des faisceaux et des confettis. Un projecteur sur la réponse la plus choisie et la musique complète."
       },
       "calm": {
         "title": "Calme",
-        "description": "Pas de flashs plein écran, de projecteur ni de faisceaux. Le verdict se joue sur la tuile. Musique 12 dB plus basse, sans groove pendant les réponses."
+        "description": "Les mêmes écrans et les mêmes mots, sans la lumière des moments, le projecteur, les faisceaux ni les confettis. Le verdict se joue sur la tuile. Musique 12 dB plus basse, sans groove pendant les réponses."
       },
       "silent": {
         "title": "Silencieux",

@@ -20,15 +20,18 @@ export const QUESTION_LAYOUT_MODE = "position" as const
 
 export const QUESTION_LAYOUT_TRANSITION_MS = QUESTION_CONTENT_ENTER_MS
 
-const CARD_GEOMETRY = "px-1 py-3 stage:p-0"
+const CARD_GEOMETRY = "px-1 py-3 stage:p-0 short:py-1"
 
-/** The scene-setting lines: smaller, and a step back from the ask. */
+/**
+ * The scene-setting lines: smaller, and a step back from the ask. A phone on
+ * its side steps both down one size, so the question fits over the answers.
+ */
 const CONTEXT_TYPE =
-  "block text-lg leading-snug font-medium text-text-body stage:text-(length:--rz-ctx) stage:leading-[1.18]"
+  "block text-lg leading-snug font-medium text-text-body stage:text-(length:--rz-ctx) stage:leading-[1.18] short:text-base"
 
 /** The real question: the largest thing on the screen. */
 const ASK_TYPE =
-  "block text-[1.625rem] leading-tight font-bold text-text-primary stage:text-(length:--rz-ask) stage:leading-[1.04] stage:tracking-[-0.015em]"
+  "block text-[1.625rem] leading-tight font-bold text-text-primary stage:text-(length:--rz-ask) stage:leading-[1.04] stage:tracking-[-0.015em] short:text-xl"
 
 interface Props {
   question: string
@@ -104,7 +107,7 @@ const QuestionCard = ({
       <h2
         ref={stackRef}
         style={vars}
-        className="stage:gap-2 flex w-full flex-col gap-3 text-center text-balance"
+        className="stage:gap-2 short:gap-1.5 flex w-full flex-col gap-3 text-center text-balance"
       >
         {sentences.map(({ lead, ask }, index) => {
           const visible = index < shownCount

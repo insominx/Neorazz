@@ -43,11 +43,11 @@
       "label": "Intensidad del espectáculo",
       "full": {
         "title": "Completo",
-        "description": "Destellos y golpes de sonido que llenan toda la pantalla, un foco sobre la respuesta más elegida y la música completa."
+        "description": "Cada gran momento ilumina la sala: luz que sube del suelo, anillos de luz, haces y confeti. Un foco sobre la respuesta más elegida y la música completa."
       },
       "calm": {
         "title": "Tranquilo",
-        "description": "Sin golpes a pantalla completa, foco ni haces de luz. El veredicto ocurre en la ficha. Música 12 dB más baja, sin ritmo mientras se responde."
+        "description": "Las mismas pantallas y palabras, sin la luz de los momentos, el foco, los haces ni el confeti. El veredicto ocurre en la ficha. Música 12 dB más baja, sin ritmo mientras se responde."
       },
       "silent": {
         "title": "Silencio",

@@ -265,7 +265,7 @@ const Responses = ({
           ref={grid}
           data-response-grid
           className={clsx(
-            "stage:gap-4 stage:px-0 stage:pb-0 grid gap-2 px-3 pb-3",
+            "stage:gap-4 stage:px-0 stage:pb-0 grid gap-2 px-4 pb-3",
             ANSWER_GRID_TRACKS.stage,
           )}
           style={answerVars(answers)}
@@ -286,7 +286,7 @@ const Responses = ({
 
         <div
           aria-hidden="true"
-          className="stage:block stage:h-[5.4rem] hidden"
+          className="stage:block stage:h-[max(5.4rem,8vh)] hidden"
         />
       </div>
     </section>

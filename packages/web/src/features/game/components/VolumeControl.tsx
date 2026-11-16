@@ -116,9 +116,12 @@ const VolumeControl = () => {
         aria-controls={panelId}
         aria-expanded={open}
         title={label}
-        className="border-border bg-surface text-text-body hover:border-brand rounded-rz-md ease-calm focus-visible:outline-brand flex cursor-pointer items-center justify-center border p-2 transition-colors focus:outline-none focus-visible:outline-2"
+        // A finger's 44 px off the stage; the teacher's corner control on the
+        // stage keeps its size, unless a finger drives the stage (in pixels,
+        // because the stage scales rem with the frame).
+        className="border-border bg-surface text-text-body hover:border-brand rounded-rz-md ease-calm focus-visible:outline-brand stage:size-auto stage:p-2 pointer-coarse:stage:min-h-[44px] pointer-coarse:stage:min-w-[44px] flex size-11 cursor-pointer items-center justify-center border transition-colors focus:outline-none focus-visible:outline-2"
       >
-        <Icon className="size-4" />
+        <Icon className="stage:size-4 size-5" />
       </button>
 
       {open && (
