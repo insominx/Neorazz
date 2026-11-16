@@ -75,7 +75,23 @@ describe("Wait", () => {
     )
 
     expect(container.querySelector("[data-picked-answer]")).toBeNull()
-    expect(screen.getByText("game:waitingForPlayers")).toBeTruthy()
+    // The phone waits for the host, not for players.
+    expect(screen.getByText("game:waitingForHost")).toBeTruthy()
+    expect(screen.queryByText("game:waitingForPlayers")).toBeNull()
+    expect(container.querySelector("[data-wait-hint]")).not.toBeNull()
+  })
+
+  it("says the phone is connected, with nothing spinning", () => {
+    const { container } = render(
+      <Wait data={{ text: "game:lectureNextQuestion" }} />,
+    )
+
+    expect(container.querySelector("[data-connection]")?.textContent).toContain(
+      "game:connectedBadge",
+    )
+    expect(screen.getByText("game:lectureNextQuestion")).toBeTruthy()
+    expect(container.querySelector("svg animateTransform")).toBeNull()
+    expect(container.querySelector("[data-wait-hint]")).toBeNull()
   })
 
   it("shows how many of the room are in, and keeps counting", () => {

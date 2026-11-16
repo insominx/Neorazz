@@ -42,7 +42,7 @@
   "lectureJoinHint": "Partecipa su {{url}} · PIN {{pin}}",
   "reveal": {
     "time": "TEMPO",
-    "allIn": "TUTTI PRONTI",
+    "allIn": "Hanno risposto tutti",
     "headline": {
       "crowdWrong": "Solo {{right}} su {{of}} hanno risposto bene. {{wrong}} sono caduti in {{letters}}.",
       "crowdRight": "{{right}} su {{of}} hanno risposto bene.",
@@ -82,6 +82,10 @@
   "seatsMore": "+{{count}} altri",
   "youreIn": "Sei dentro, {{name}}",
   "playersHere": "{{count}} presenti",
+  "connectedBadge": "Connesso",
+  "waitingForHost": "In attesa dell’host",
+  "waitNextHint": "Tieni aperta questa pagina. Quello che viene dopo apparirà qui da solo.",
+  "watchScreen": "Guarda il grande schermo",
   "standingLevel": "Pari con {{name}}. Ancora una risposta veloce e lo superi.",
   "leave": {
     "title": "Chiudere la stanza?",

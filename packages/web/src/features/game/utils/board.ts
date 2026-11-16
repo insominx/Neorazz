@@ -178,8 +178,8 @@ export const podiumTimes = (players: number): PodiumTimes => {
   }
 }
 
-/** The winner's name holds the whole frame this long, then clears to the podium. */
-export const WINNER_FLOOD_MS = 2_600
+/** The winner's name holds over the podium this long, then rises away. */
+export const WINNER_MOMENT_MS = 2_600
 
 /** Confetti bursts when first place lands and stops after this long. */
 export const CONFETTI_MS = 8_000

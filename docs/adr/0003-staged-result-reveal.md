@@ -33,3 +33,7 @@ Keep the existing statuses and stamp them, as `0001` does for the answer reveal.
 - Quiz JSON and saved results are unchanged. A saved result has no stamps, so a lecture deck's review is the final grid with no flood and no sound.
 - Calm, Silent and reduced motion keep the schedule but not the flood or the spotlight: the verdict happens on the tile.
 - Pacing changes must update the common schedule, the web projection tests and `STYLE.md` together.
+
+## Amendment (2026-11-15): light, not paint
+
+The schedule and every stamp above are unchanged; only what the beats draw changed. The full-frame floods (TIME, the strike, a phone's verdict) became light (`packages/web/STYLE.md`, "Light, not paint"): TIME is a word where the clock was, held until the strike; the strike lights the right tile where it is, with green rings and a pool of green light behind it; a phone stays dark and lands its verdict badge with one ring and a glow of its colour from the bottom edge. "Flood" above now reads as the strike's light: `RESULT_FLOOD_MS` keeps its value and its place in the schedule. Calm, Silent and reduced motion keep the words and drop the light. A settled client still draws no moment and makes no sound.

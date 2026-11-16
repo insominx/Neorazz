@@ -140,23 +140,87 @@ describe("Atmosphere mood", () => {
     expect(beamsOn(calm.container)).toBe(0)
   })
 
-  it("sends up embers while the room runs warm, unless it is calm", () => {
-    const warm = render(<Atmosphere recipe="photo" mood="warm" />)
-    expect(warm.container.querySelectorAll(".rz-ember")).toHaveLength(12)
-    cleanup()
+  it("sends no embers: nothing drifts behind the answers (task 0015)", () => {
+    const { container } = render(<Atmosphere recipe="photo" mood="warm" />)
 
-    const cool = render(<Atmosphere recipe="photo" mood="cool" />)
-    expect(cool.container.querySelector("[data-embers]")).toBeNull()
-    cleanup()
-
-    const calm = render(<Atmosphere recipe="photo" mood="warm" calm />)
-    expect(calm.container.querySelector("[data-embers]")).toBeNull()
+    expect(container.querySelector(".rz-ember, [data-embers]")).toBeNull()
   })
 
   it("still lights the mood when calm: the picture stays", () => {
     const { container } = render(<Atmosphere recipe="photo" mood="warm" calm />)
 
     expect(activeMoods(container)).toEqual(["warm"])
+  })
+})
+
+describe("Atmosphere moment light", () => {
+  const RECT = { top: 400, left: 300, width: 600, height: 160 }
+
+  it("has no floor light unless a moment asks, then rises in its colour", () => {
+    const dark = render(<Atmosphere recipe="photo" />)
+    const idle = dark.container.querySelector<HTMLElement>(".rz-floor")
+
+    expect(idle?.style.opacity).toBe("0")
+    expect(idle).not.toHaveAttribute("data-floor")
+    cleanup()
+
+    const { container } = render(
+      <Atmosphere recipe="photo" floor={{ tone: "gold", level: 1 }} />,
+    )
+    const floor = container.querySelector<HTMLElement>(".rz-floor")
+
+    expect(floor).toHaveAttribute("data-floor", "gold")
+    expect(floor?.style.opacity).toBe("1")
+    expect(floor?.style.getPropertyValue("--rz-light")).toBe("255 205 90")
+  })
+
+  it("puts a flare's light and rings behind what it is about", () => {
+    const { container } = render(
+      <Atmosphere
+        recipe="photo"
+        flares={[{ id: "a", tone: "success", rect: RECT, rings: 3 }]}
+      />,
+    )
+    const flare = container.querySelector<HTMLElement>("[data-flare]")
+    const rings = container.querySelectorAll<HTMLElement>(".rz-flare-ring")
+
+    expect(flare).toHaveAttribute("data-flare", "success")
+    expect(flare?.style.getPropertyValue("--rz-flare-x")).toBe("600px")
+    expect(flare?.style.getPropertyValue("--rz-flare-y")).toBe("480px")
+    expect(rings).toHaveLength(3)
+    expect(rings[0].style.top).toBe("400px")
+    expect(rings[2].style.animationDelay).toBe("560ms")
+  })
+
+  it("leaves out the floor light and flares when calm", () => {
+    const { container } = render(
+      <Atmosphere
+        recipe="photo"
+        calm
+        floor={{ tone: "brand", level: 1 }}
+        flares={[{ id: "a", tone: "brand", rect: RECT, rings: 1 }]}
+      />,
+    )
+
+    expect(
+      container.querySelector<HTMLElement>(".rz-floor")?.style.opacity,
+    ).toBe("0")
+    expect(container.querySelector("[data-flare]")).toBeNull()
+  })
+
+  it("turns the beams in only while they are on and focused", () => {
+    const { container } = render(
+      <Atmosphere recipe="photo" mood="gold" focus />,
+    )
+
+    expect(container.querySelectorAll(".rz-beam[data-focus]")).toHaveLength(2)
+    cleanup()
+
+    const cool = render(<Atmosphere recipe="photo" mood="cool" focus />)
+
+    expect(
+      cool.container.querySelectorAll(".rz-beam[data-focus]"),
+    ).toHaveLength(0)
   })
 })
 

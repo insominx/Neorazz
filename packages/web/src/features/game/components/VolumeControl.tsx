@@ -1,3 +1,4 @@
+import { playPreviewTone } from "@razzia/web/features/game/audio/preview-tone"
 import { useSoundStore } from "@razzia/web/features/game/stores/sound"
 import { useOnClickOutside } from "@razzia/web/hooks/useOnClickOutside"
 import { Volume2, VolumeX } from "lucide-react"
@@ -132,7 +133,11 @@ const VolumeControl = () => {
               max={1}
               step={0.05}
               value={muted ? 0 : volume}
-              onChange={(event) => setVolume(Number(event.target.value))}
+              onChange={(event) => {
+                setVolume(Number(event.target.value))
+                unlock()
+                playPreviewTone()
+              }}
               onPointerDown={handleSliderPointerDown}
               onPointerUp={handleSliderPointerUp}
               onPointerCancel={handleSliderPointerUp}

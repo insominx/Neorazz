@@ -74,6 +74,9 @@
   --animate-rz-enter: rz-enter var(--rz-dur-base) var(--rz-ease-calm) both;
   --animate-rz-bar-grow: rz-bar-grow var(--rz-dur-base) var(--rz-ease-calm) both;
   --animate-rz-fade-in: rz-fade-in var(--rz-dur-fast) var(--rz-ease-calm) both;
+  /* A screen arriving: linear, so no tenth of a second brightens it much
+     (STYLE.md, "Light, not paint"). */
+  --animate-rz-screen-in: rz-fade-in 500ms linear both;
   --color-glass: var(--rz-glass);
 }
 
@@ -314,60 +317,16 @@ button:not(:disabled),
   .anim-quizz,
   .anim-balanced,
   .anim-timer,
-  .rz-timer-ring,
-  .spotlight {
+  .rz-timer-ring {
     animation: none !important;
     transition: none !important;
   }
 }
 
-.spotlight {
-  position: absolute;
-  height: 200%;
-  width: 200%;
-  z-index: 100;
-  background-image: radial-gradient(
-    circle,
-    transparent 180px,
-    rgba(0, 0, 0, 0.6) 200px
-  );
-  opacity: 0;
-  left: -50%;
-  top: -50%;
-  transition: all 0.5s;
-  animation: spotlightAnim 2.5s ease-in;
-}
-
-@keyframes spotlightAnim {
-  0% {
-    left: -20%;
-    top: -20%;
-  }
-  30% {
-    opacity: 100;
-    top: -80%;
-    left: -80%;
-  }
-  60% {
-    top: -50%;
-    left: -20%;
-  }
-  80% {
-    top: -50%;
-    left: -50%;
-  }
-  98% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
 /* ---- Backdrop ----------------------------------------------------------
    Light made in code. A deep navy gradient, a glow per mood that crossfades as
-   the game moves, and beams and embers for the full show. The light register
-   (the studio) stays a plain canvas. */
+   the game moves, beams for the full show, and a moment's own light (below).
+   The light register (the studio) stays a plain canvas. */
 
 .rz-backdrop {
   background: linear-gradient(180deg, #0a1222 0%, #070b15 52%, #04060b 100%);
@@ -390,7 +349,8 @@ html[data-backdrop="slide"] [data-poll-frame] {
 
 :root[data-register="light"] .rz-mood,
 :root[data-register="light"] .rz-beam,
-:root[data-register="light"] .rz-embers {
+:root[data-register="light"] .rz-floor,
+:root[data-register="light"] .rz-flare {
   display: none;
 }
 
@@ -459,7 +419,9 @@ html[data-backdrop="slide"] [data-poll-frame] {
   filter: blur(2rem);
   mix-blend-mode: screen;
   opacity: 0;
-  transition: opacity 1200ms var(--rz-ease-calm);
+  transition:
+    opacity 1200ms var(--rz-ease-calm),
+    transform 3500ms cubic-bezier(0.45, 0, 0.55, 1);
 }
 
 .rz-beam::before {
@@ -489,102 +451,99 @@ html[data-backdrop="slide"] [data-poll-frame] {
   transform: rotate(-8deg);
 }
 
-.rz-embers {
+/* The podium's roll: both beams swing in to cross over first place. */
+.rz-beam-left[data-focus] {
+  transform: rotate(-24deg);
+}
+
+.rz-beam-right[data-focus] {
+  transform: rotate(24deg);
+}
+
+/* ---- A moment's light ----------------------------------------------------
+   STYLE.md, "Light, not paint": a big moment brightens the show's own light
+   and never paints the frame. The floor light rises from the bottom as a
+   poll's room does (in the moment's colour); a flare is a pool of light behind
+   what the moment is about, with rings of the same light leaving it. Both sit
+   in the atmosphere, so they stay behind the copy and over a deck's slide. */
+
+.rz-floor {
   position: absolute;
   inset: 0;
-  overflow: hidden;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    70% 60% at 50% 112%,
+    rgb(var(--rz-light) / 0.5),
+    transparent 72%
+  );
+  transition: opacity 900ms var(--rz-ease-calm);
 }
 
-.rz-ember {
+.rz-flare {
   position: absolute;
-  bottom: -1rem;
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 9999px;
-  background: #ffb37a;
-  box-shadow: 0 0 0.75rem 0.25rem rgb(255 120 50 / 0.6);
-  opacity: 0;
-  animation: rz-ember 5.5s linear infinite;
+  inset: 0;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    46rem 30rem at var(--rz-flare-x) var(--rz-flare-y),
+    rgb(var(--rz-light) / 0.3),
+    transparent 72%
+  );
+  animation: rz-flare-in 700ms ease-in-out both;
 }
 
-.rz-ember:nth-child(3n) {
-  width: 0.25rem;
-  height: 0.25rem;
-  animation-duration: 7s;
+/* A phone's frame is a fraction of the projector's: its pools are smaller, so
+   one sits behind its subject instead of tinting the whole screen. */
+html:not([data-stage]) .rz-flare {
+  background: radial-gradient(
+    16rem 12rem at var(--rz-flare-x) var(--rz-flare-y),
+    rgb(var(--rz-light) / 0.3),
+    transparent 72%
+  );
 }
 
-.rz-ember:nth-child(1) {
-  left: 6%;
-  animation-delay: -0.4s;
-}
-.rz-ember:nth-child(2) {
-  left: 14%;
-  animation-delay: -2.9s;
-}
-.rz-ember:nth-child(3) {
-  left: 23%;
-  animation-delay: -1.7s;
-}
-.rz-ember:nth-child(4) {
-  left: 31%;
-  animation-delay: -4.2s;
-}
-.rz-ember:nth-child(5) {
-  left: 40%;
-  animation-delay: -0.9s;
-}
-.rz-ember:nth-child(6) {
-  left: 49%;
-  animation-delay: -3.5s;
-}
-.rz-ember:nth-child(7) {
-  left: 57%;
-  animation-delay: -2.2s;
-}
-.rz-ember:nth-child(8) {
-  left: 66%;
-  animation-delay: -5s;
-}
-.rz-ember:nth-child(9) {
-  left: 74%;
-  animation-delay: -1.3s;
-}
-.rz-ember:nth-child(10) {
-  left: 82%;
-  animation-delay: -3.9s;
-}
-.rz-ember:nth-child(11) {
-  left: 90%;
-  animation-delay: -0.1s;
-}
-.rz-ember:nth-child(12) {
-  left: 96%;
-  animation-delay: -2.6s;
-}
-
-@keyframes rz-ember {
-  0% {
-    transform: translate3d(0, 0, 0);
+@keyframes rz-flare-in {
+  from {
     opacity: 0;
   }
-  12% {
-    opacity: 0.9;
+  to {
+    opacity: 1;
   }
-  100% {
-    transform: translate3d(1.5rem, -48rem, 0);
+}
+
+.rz-flare-ring {
+  position: absolute;
+  border-radius: 0.75rem;
+  outline: 0.375rem solid rgb(var(--rz-light) / 0.75);
+  outline-offset: 0;
+  opacity: 0;
+  animation: rz-flare-ring 1500ms var(--rz-ease-calm) both;
+}
+
+.rz-flare-ring[data-round] {
+  border-radius: 9999px;
+}
+
+@keyframes rz-flare-ring {
+  from {
+    outline-offset: 0;
+    opacity: 0.6;
+  }
+  to {
+    outline-offset: 9rem;
     opacity: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .rz-mood,
-  .rz-beam {
+  .rz-beam,
+  .rz-floor,
+  .rz-flare {
     transition: none;
   }
 
-  .rz-ember {
-    animation: none;
-    opacity: 0;
+  .rz-flare-ring {
+    display: none;
   }
 }
 
@@ -690,123 +649,79 @@ html[data-stage] .rz-line {
 }
 
 /* ---- The reveal --------------------------------------------------------
-   The verdict is staged on one clock (`result-reveal.ts`): a full-frame TIME,
-   the count, a question, then the strike. `data-phase` on the screen drives the
-   dimming; `data-calm` (Calm, Silent, reduced motion) leaves out the flood, the
-   spotlight and the dimming and lets the verdict happen on the tile. */
+   The verdict is staged on one clock (`result-reveal.ts`): TIME, the count, a
+   question, then the strike. `data-phase` on the screen drives the dimming;
+   `data-calm` (Calm, Silent, reduced motion) leaves out the spotlight and the
+   dimming and lets the verdict happen on the tile. A moment's words land like
+   a poll's names (`rz-moment`), and its light is the atmosphere's. */
 
-.rz-hit {
-  position: fixed;
+/* A moment's word or name: it rises a little and sharpens in, holds, and
+   leaves upward, in its tone's colour with a glow (the poll's arrival). */
+.rz-moment {
+  --rz-moment: var(--rz-brand);
+  color: var(--rz-moment);
+  text-shadow: 0 0 3rem color-mix(in srgb, var(--rz-moment) 55%, transparent);
+  animation: rz-arrival-in 600ms var(--rz-ease-calm) both;
+}
+
+/* The same landing for a block that keeps its own colours (a phone's verdict). */
+.rz-land {
+  animation: rz-arrival-in 600ms var(--rz-ease-calm) both;
+}
+
+.rz-land[data-calm] {
+  animation: rz-fade-in var(--rz-dur-base) var(--rz-ease-calm) both;
+}
+
+.rz-moment[data-tone="warning"] {
+  --rz-moment: var(--rz-warning);
+}
+
+.rz-moment[data-tone="gold"] {
+  --rz-moment: var(--rz-medal-gold);
+}
+
+.rz-moment[data-leaving] {
+  animation: rz-arrival-out 400ms var(--rz-ease-calm) forwards;
+}
+
+.rz-moment[data-calm] {
+  animation: rz-fade-in var(--rz-dur-base) var(--rz-ease-calm) both;
+}
+
+.rz-moment[data-calm][data-leaving] {
+  animation: rz-fade-out var(--rz-dur-fast) var(--rz-ease-calm) forwards;
+}
+
+/* A phone's verdict badge: one ring of its colour spreads once. */
+.rz-verdict-badge {
+  position: relative;
+}
+
+.rz-verdict-badge::after {
+  content: "";
+  position: absolute;
   inset: 0;
-  z-index: 40;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  color: #000;
-  font-family: var(--font-display);
-  pointer-events: none;
+  border: 0.3rem solid var(--rz-verdict);
+  border-radius: 9999px;
+  animation: rz-arrival-ring 1s var(--rz-ease-calm) both;
 }
 
-.rz-hit[data-hit="time"] {
-  background: #ff8a3c;
-  font-size: 22rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  animation: rz-hit-time 600ms ease-out var(--rz-hit-delay, 0ms) both;
-}
-
-/* A phone's verdict: its colour and a glyph, the whole screen, and nothing
-   else, so heads stay up for the room's strike. */
-.rz-hit[data-hit="verdict"] {
-  background: var(--rz-hit-color, #34d98b);
-  animation: rz-hit-verdict 320ms ease-out var(--rz-hit-delay, 0ms) both;
-}
-
-@keyframes rz-hit-verdict {
-  from {
-    clip-path: circle(0% at 50% 45%);
-  }
-  to {
-    clip-path: circle(150% at 50% 45%);
-  }
-}
-
-.rz-hit[data-hit="strike"] {
-  background: #4dffa0;
-  animation: rz-hit-flood 1500ms var(--rz-ease-calm) var(--rz-hit-delay, 0ms)
-    both;
-}
-
-@keyframes rz-hit-time {
-  0% {
-    clip-path: circle(0% at 50% 62%);
-    opacity: 1;
-  }
-  18% {
-    clip-path: circle(150% at 50% 62%);
-  }
-  70% {
-    clip-path: circle(150% at 50% 62%);
-    opacity: 1;
-  }
-  100% {
-    clip-path: circle(150% at 50% 62%);
-    opacity: 0;
-  }
-}
-
-/* The flood leaves the right tile, fills the frame, holds, and goes back. */
-@keyframes rz-hit-flood {
-  0% {
-    clip-path: inset(var(--rz-hit-inset) round 0.75rem);
-    opacity: 1;
-  }
-  17% {
-    clip-path: inset(0 round 0);
-  }
-  66% {
-    clip-path: inset(0 round 0);
-    opacity: 1;
-  }
-  100% {
-    clip-path: inset(var(--rz-hit-inset) round 0.75rem);
-    opacity: 0;
-  }
-}
-
-.rz-flood-answer {
-  display: flex;
-  align-items: center;
-  gap: 2.5rem;
-  color: #000;
-}
-
-.rz-flood-letter {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 1.4em;
-  height: 1.4em;
-  border-radius: 0.2em;
-  background: #000;
-  color: #4dffa0;
-  font-family: var(--font-display);
-  font-weight: 800;
-  line-height: 1;
+.rz-verdict-badge[data-calm]::after {
+  content: none;
 }
 
 /* The count, then the question: dim everything but the most-picked answer. */
 [data-reveal]:not([data-calm])[data-phase="count"] [data-question-layout],
 [data-reveal]:not([data-calm])[data-phase="spotlight"] [data-question-layout] {
   opacity: 0.38;
-  transition: opacity 250ms ease-out;
+  transition: opacity 600ms ease-in-out;
 }
 
 [data-reveal]:not([data-calm])[data-phase="spotlight"]
   .rz-tile:not([data-spot]) {
   opacity: 0.22;
-  transition: opacity 250ms ease-out;
+  transition: opacity 600ms ease-in-out;
 }
 
 [data-reveal]:not([data-calm])[data-phase="spotlight"] .rz-tile[data-spot] {
@@ -844,7 +759,10 @@ html[data-stage] .rz-line {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rz-hit,
+  .rz-moment,
+  .rz-land,
+  .rz-verdict-badge::after,
+  .rz-hud-flash,
   .rz-tile[data-spot] {
     animation: none !important;
   }
@@ -870,40 +788,6 @@ html[data-stage] .rz-line {
   }
 }
 
-/* The winner's name takes the whole frame in gold, holds, and clears to the
-   podium. Black on gold, so it reads with the lights on. */
-.rz-hit[data-hit="winner"] {
-  background: var(--rz-medal-gold);
-  padding: 4rem;
-  font-size: 9rem;
-  font-weight: 800;
-  line-height: 1.05;
-  text-align: center;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
-  animation: rz-hit-winner 2600ms var(--rz-ease-calm) var(--rz-hit-delay, 0ms)
-    both;
-}
-
-@keyframes rz-hit-winner {
-  0% {
-    clip-path: circle(0% at 50% 55%);
-    opacity: 1;
-  }
-  22% {
-    clip-path: circle(150% at 50% 55%);
-    opacity: 1;
-  }
-  78% {
-    clip-path: circle(150% at 50% 55%);
-    opacity: 1;
-  }
-  100% {
-    clip-path: circle(150% at 50% 55%);
-    opacity: 0;
-  }
-}
-
 /* An odometer digit: a column of 0-9 that slides to the right one. */
 .rz-odo-digit {
   display: inline-block;
@@ -925,35 +809,6 @@ html[data-stage] .rz-line {
   display: block;
   height: 1em;
   line-height: 1;
-}
-
-/* GO: the whole frame in the brand colour as the first question starts. */
-.rz-hit[data-hit="go"] {
-  background: var(--rz-brand);
-  font-size: 26rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  animation: rz-hit-go 900ms ease-out var(--rz-hit-delay, 0ms) both;
-}
-
-@keyframes rz-hit-go {
-  0% {
-    clip-path: circle(0% at 50% 55%);
-    opacity: 1;
-  }
-  22% {
-    clip-path: circle(150% at 50% 55%);
-    opacity: 1;
-  }
-  70% {
-    clip-path: circle(150% at 50% 55%);
-    opacity: 1;
-  }
-  100% {
-    clip-path: circle(150% at 50% 55%);
-    opacity: 0;
-  }
 }
 
 /* The lobby's PIN: split-flap cards that flip into place, left to right. */
@@ -1045,9 +900,9 @@ html[data-stage] .rz-line {
   border: 0.5rem solid var(--rz-border);
   background: var(--rz-surface);
   transition:
-    background-color 120ms ease-out,
-    box-shadow 120ms ease-out,
-    border-color 120ms ease-out;
+    background-color 350ms ease-out,
+    box-shadow 350ms ease-out,
+    border-color 350ms ease-out;
 }
 
 .rz-lamp[data-lamp="on"] {
@@ -1502,6 +1357,23 @@ html[data-stage] .rz-tile-badge svg {
   }
 }
 
+/* The ANSWERED number on each answer: it steps up in brand and settles, like
+   a poll's count. Nothing else on the answering screen moves for it. */
+.rz-hud-flash {
+  display: inline-block;
+  animation: rz-hud-flash 600ms var(--rz-ease-calm) both;
+}
+
+@keyframes rz-hud-flash {
+  from {
+    transform: scale(1.2);
+    color: var(--rz-brand);
+  }
+  to {
+    transform: none;
+  }
+}
+
 /* The clock's digit swells and heats in the last five seconds, and pulses on
    every tick; the key on the digit restarts it each second. */
 .rz-hud-hot {
@@ -1645,15 +1517,26 @@ html[data-stage] .rz-tile-badge svg {
 }
 
 /* Each arrival sends a ring of light out from the count, behind the text and
-   the option tiles, and the count itself flashes. */
+   the option tiles, and the count itself flashes.
+
+   The ring grows to 100rem inside the poll's scrolling <main>. Nothing between
+   it and the poll frame is positioned, so its containing block lies outside
+   <main>: it neither adds scroll height there (a stray scrollbar) nor is
+   clipped by it. It sits at its static position, the zero-size anchor centred
+   on the count's line, instead of top/left offsets. */
+.rz-arrival-pulse-anchor {
+  display: block;
+  width: 0;
+  height: 0;
+  margin-inline: auto;
+}
+
 .rz-arrival-pulse {
   position: absolute;
-  top: 50%;
-  left: 50%;
   z-index: -1;
   width: 2rem;
   height: 2rem;
-  translate: -50% -50%;
+  translate: -50% calc(-50% + 0.5lh);
   border: 0.375rem solid var(--rz-brand);
   border-radius: 9999px;
   pointer-events: none;

@@ -47,7 +47,7 @@ const Start = ({ data: { time, subject } }: Props) => {
   const lit = counting ? Math.min(time, time - cooldown + 1) : 0
 
   return (
-    <section className="relative mx-auto flex w-full max-w-[110rem] flex-1 flex-col items-center justify-center gap-10 px-6">
+    <section className="animate-rz-screen-in relative mx-auto flex w-full max-w-[110rem] flex-1 flex-col items-center justify-center gap-10 px-6">
       {counting ? (
         <>
           <div data-lamps className="stage:gap-14 flex items-center gap-6">

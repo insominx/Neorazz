@@ -5,6 +5,7 @@ import {
 } from "@razzia/common/utils/result-reveal"
 import Result from "@razzia/web/features/game/components/states/Result"
 import { usePlayerStore } from "@razzia/web/features/game/stores/player"
+import { useStageLightStore } from "@razzia/web/features/game/stores/stage-light"
 import { haptic } from "@razzia/web/features/game/utils/haptics"
 import { act, cleanup, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -55,6 +56,10 @@ const live = (
 ): CommonStatusDataMap["SHOW_RESULT"] =>
   result({ resultsAt: Date.now(), serverNow: Date.now(), ...overrides })
 
+/** The verdict badge's own colour (the background of the disc). */
+const badgeColour = (): string =>
+  document.querySelector<HTMLElement>(".rz-verdict-badge")?.style.cssText ?? ""
+
 describe("Result", () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -76,11 +81,14 @@ describe("Result", () => {
     })
 
   describe("a live verdict", () => {
-    it("holds while the room builds up to it: nothing to read yet", () => {
+    it("holds while the room builds up to it: eyes on the big screen", () => {
       render(<Result data={live()} />)
 
       expect(stage()).toBe("hold")
       expect(screen.queryByText("game:correct")).not.toBeInTheDocument()
+      expect(screen.getByText("game:watchScreen")).toBeInTheDocument()
+      // Nothing spins while the phone waits.
+      expect(document.querySelector("svg animateTransform")).toBeNull()
       expect(haptic).not.toHaveBeenCalled()
     })
 
@@ -101,18 +109,21 @@ describe("Result", () => {
       )
     })
 
-    it("floods the phone with the verdict's colour and a glyph, on the strike", () => {
+    it("lands the verdict's badge on the strike, with its colour rising from the floor", () => {
       render(<Result data={live()} />)
 
       advance(RESULT_STRIKE_MS + 100)
 
       expect(stage()).toBe("struck")
-      expect(document.querySelector("[data-hit='verdict']")).not.toBeNull()
-      expect(
-        document.querySelector<HTMLElement>("[data-hit='verdict']")?.style
-          .cssText,
-      ).toContain("#34d98b")
-      // Colour and glyph and nothing else: the words wait two seconds.
+      // The phone stays dark: no fill over the screen.
+      expect(document.querySelector("[data-hit]")).toBeNull()
+      expect(document.querySelector(".rz-verdict-badge")).not.toBeNull()
+      expect(badgeColour()).toContain("#34d98b")
+      expect(useStageLightStore.getState().floor).toEqual({
+        tone: "success",
+        level: 0.55,
+      })
+      // The words wait two seconds.
       expect(document.querySelector("[data-result-details]")).toBeNull()
     })
 
@@ -217,10 +228,8 @@ describe("Result", () => {
       )
 
       advance(RESULT_STRIKE_MS + 100)
-      expect(
-        document.querySelector<HTMLElement>("[data-hit='verdict']")?.style
-          .cssText,
-      ).toContain("#ff6a58")
+      expect(badgeColour()).toContain("#ff6a58")
+      expect(useStageLightStore.getState().floor?.tone).toBe("danger")
 
       advance(RESULT_PHONE_DETAILS_MS)
 
@@ -244,10 +253,8 @@ describe("Result", () => {
       )
 
       advance(RESULT_STRIKE_MS + 100)
-      expect(
-        document.querySelector<HTMLElement>("[data-hit='verdict']")?.style
-          .cssText,
-      ).toContain("#aab4c4")
+      expect(badgeColour()).toContain("#aab4c4")
+      expect(useStageLightStore.getState().floor?.tone).toBe("neutral")
 
       advance(RESULT_PHONE_DETAILS_MS)
 
@@ -285,13 +292,17 @@ describe("Result", () => {
       calm.on = true
     })
 
-    it("has no flood: the glyph and the verdict simply appear on the strike", () => {
+    it("has no light: the glyph and the verdict simply appear on the strike", () => {
       render(<Result data={live()} />)
 
       advance(RESULT_STRIKE_MS + 100)
 
       expect(stage()).toBe("struck")
       expect(document.querySelector("[data-hit]")).toBeNull()
+      expect(useStageLightStore.getState().floor).toBeNull()
+      expect(document.querySelector(".rz-verdict-badge")).toHaveAttribute(
+        "data-calm",
+      )
       expect(screen.getByText("game:correct")).toBeInTheDocument()
       expect(document.querySelector("[data-result-details]")).toBeNull()
     })

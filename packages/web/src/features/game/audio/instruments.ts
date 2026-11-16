@@ -824,6 +824,281 @@ const chord = (
   }
 }
 
+interface BrassParams extends Notes {
+  dur: number
+  v?: number
+  rev?: number
+}
+
+/**
+ * A synth brass section: detuned saws whose filter opens with a bright blat on
+ * the attack and settles, a small scoop up into pitch, and vibrato that grows
+ * on a held note. `notes` are the pitches heard, not an octave down.
+ */
+const brass = (g: Bus, w: number, p: BrassParams): void => {
+  const { notes, dur, v = 0.6, rev = 0.45 } = p
+  const peak = 0.11 * v
+  const hold = Math.max(0.18, dur - 0.12)
+  const gain = g.ctx.createGain()
+
+  gain.gain.setValueAtTime(0.0001, w)
+  gain.gain.exponentialRampToValueAtTime(peak, w + 0.025)
+  gain.gain.exponentialRampToValueAtTime(peak * 0.72, w + 0.18)
+  gain.gain.setValueAtTime(peak * 0.72, w + hold)
+  gain.gain.exponentialRampToValueAtTime(0.0001, w + dur + 0.22)
+
+  const lowpass = resonant(filter(g, "lowpass", 700), 1.4)
+
+  lowpass.frequency.setValueAtTime(700, w)
+  lowpass.frequency.exponentialRampToValueAtTime(4200, w + 0.05)
+  lowpass.frequency.exponentialRampToValueAtTime(2300, w + 0.35)
+
+  const vibrato = tone(g, "sine", 5.4)
+  const depth = g.ctx.createGain()
+
+  depth.gain.setValueAtTime(0, w)
+  depth.gain.setValueAtTime(0, w + 0.25)
+  depth.gain.linearRampToValueAtTime(9, w + 0.7)
+  vibrato.connect(depth)
+  vibrato.start(w)
+  vibrato.stop(w + dur + 0.3)
+
+  for (const m of notes) {
+    for (const cents of [-7, 6]) {
+      const osc = tone(g, "sawtooth", midiHz(m))
+
+      osc.detune.setValueAtTime(cents - 35, w)
+      osc.detune.linearRampToValueAtTime(cents, w + 0.045)
+      depth.connect(osc.detune)
+      osc.connect(lowpass)
+      osc.start(w)
+      osc.stop(w + dur + 0.3)
+    }
+  }
+
+  lowpass.connect(gain)
+  send(g, gain, { rev, dly: 0.08 })
+}
+
+const TIMPANI_PARTIALS = [
+  [1, 1],
+  [1.5, 0.5],
+  [1.98, 0.32],
+  [2.44, 0.18],
+] as const
+
+/** A kettle drum: a few slightly inharmonic partials and a soft mallet. */
+const timpani = (
+  g: Bus,
+  w: number,
+  p: { m: number; v?: number; d?: number },
+): void => {
+  const { m, v = 1, d = 1.6 } = p
+  const f0 = midiHz(m)
+
+  for (const [ratio, level] of TIMPANI_PARTIALS) {
+    const osc = tone(g, "sine", f0 * ratio)
+
+    osc.frequency.setValueAtTime(f0 * ratio * 1.02, w)
+    osc.frequency.exponentialRampToValueAtTime(f0 * ratio, w + 0.08)
+
+    const gain = envelope(g, w, {
+      a: 0.003,
+      pk: 0.5 * v * level,
+      d: d / Math.sqrt(ratio),
+    })
+
+    osc.connect(gain)
+    send(g, gain, { rev: 0.35 })
+    osc.start(w)
+    osc.stop(w + d + 0.1)
+  }
+
+  const mallet = noiseSource(g, w, 0.1)
+  const malletFilter = filter(g, "lowpass", 900)
+  const malletGain = envelope(g, w, { a: 0.001, pk: 0.35 * v, d: 0.06 })
+
+  mallet.connect(malletFilter)
+  malletFilter.connect(malletGain)
+  send(g, malletGain, { rev: 0.2 })
+}
+
+interface StringsParams extends Notes {
+  dur: number
+  v?: number
+  cut?: number
+  /** Seconds to fade in; a long one makes a swell. */
+  att?: number
+}
+
+/** A string section: detuned saws with vibrato, faded in over `att`. */
+const strings = (g: Bus, w: number, p: StringsParams): void => {
+  const { notes, dur, v = 0.5, cut = 3200, att = 0.6 } = p
+  const hold = Math.max(att, dur)
+  const gain = g.ctx.createGain()
+
+  gain.gain.setValueAtTime(0.0001, w)
+  gain.gain.linearRampToValueAtTime(v * 0.06, w + att)
+  gain.gain.setValueAtTime(v * 0.06, w + hold)
+  gain.gain.linearRampToValueAtTime(0.0001, w + hold + 0.7)
+
+  const lowpass = resonant(filter(g, "lowpass", cut), 0.7)
+  const vibrato = tone(g, "sine", 5.6)
+  const depth = g.ctx.createGain()
+
+  depth.gain.value = 7
+  vibrato.connect(depth)
+  vibrato.start(w)
+  vibrato.stop(w + hold + 1)
+
+  for (const m of notes) {
+    for (const cents of [-12, 0, 12]) {
+      const osc = detuned(tone(g, "sawtooth", midiHz(m)), cents)
+
+      depth.connect(osc.detune)
+      osc.connect(lowpass)
+      osc.start(w)
+      osc.stop(w + hold + 0.8)
+    }
+  }
+
+  lowpass.connect(gain)
+  send(g, gain, { dry: 0.8, rev: 0.6 })
+}
+
+const CHOIR_FORMANTS = [
+  [800, 6, 1],
+  [1150, 7, 0.6],
+  [2900, 9, 0.25],
+] as const
+
+/** An "aah" choir: saws through the vowel's three formants. */
+const choir = (
+  g: Bus,
+  w: number,
+  p: Notes & { dur: number; v?: number },
+): void => {
+  const { notes, dur, v = 0.5 } = p
+  const gain = g.ctx.createGain()
+
+  gain.gain.setValueAtTime(0.0001, w)
+  gain.gain.linearRampToValueAtTime(v * 0.5, w + 0.5)
+  gain.gain.setValueAtTime(v * 0.5, w + dur)
+  gain.gain.linearRampToValueAtTime(0.0001, w + dur + 0.9)
+
+  const voices = g.ctx.createGain()
+
+  voices.gain.value = 0.05
+
+  const vibrato = tone(g, "sine", 5.1)
+  const depth = g.ctx.createGain()
+
+  depth.gain.value = 10
+  vibrato.connect(depth)
+  vibrato.start(w)
+  vibrato.stop(w + dur + 1)
+
+  for (const m of notes) {
+    for (const cents of [-8, 0, 8]) {
+      const osc = detuned(tone(g, "sawtooth", midiHz(m)), cents)
+
+      depth.connect(osc.detune)
+      osc.connect(voices)
+      osc.start(w)
+      osc.stop(w + dur + 1)
+    }
+  }
+
+  for (const [frequency, q, level] of CHOIR_FORMANTS) {
+    const band = resonant(filter(g, "bandpass", frequency), q)
+    const trim = g.ctx.createGain()
+
+    trim.gain.value = level * 3
+    voices.connect(band)
+    band.connect(trim)
+    trim.connect(gain)
+  }
+
+  send(g, gain, { dry: 0.7, rev: 0.75 })
+}
+
+/**
+ * A cheering room: two bands of roar that swell and sway, scattered claps
+ * thinning out over `dur`, and two whistles. The scatter is seeded, so a
+ * render is repeatable.
+ */
+const crowd = (g: Bus, w: number, p: { dur?: number; v?: number }): void => {
+  const { dur = 5, v = 1 } = p
+
+  for (const [frequency, q, level, sway] of [
+    [850, 0.7, 0.22, 2.1],
+    [2200, 1.1, 0.08, 2.6],
+  ] as const) {
+    const source = noiseSource(g, w, dur + 1.6)
+    const band = resonant(filter(g, "bandpass", frequency), q)
+    const gain = g.ctx.createGain()
+
+    gain.gain.setValueAtTime(0.0001, w)
+    gain.gain.linearRampToValueAtTime(level * v, w + 0.35)
+    gain.gain.setValueAtTime(level * v, w + dur * 0.5)
+    gain.gain.linearRampToValueAtTime(0.0001, w + dur + 1.5)
+
+    const wobble = tone(g, "sine", sway)
+    const wobbleDepth = g.ctx.createGain()
+
+    wobbleDepth.gain.value = level * v * 0.35
+    wobble.connect(wobbleDepth)
+    wobbleDepth.connect(gain.gain)
+    wobble.start(w)
+    wobble.stop(w + dur + 1.6)
+    source.connect(band)
+    band.connect(gain)
+    send(g, gain, { dry: 0.9, rev: 0.4 })
+  }
+
+  const claps = Math.round(dur * 55)
+
+  for (let i = 0; i < claps; i += 1) {
+    const at = w + 0.1 + dur * seed(i * 1.7 + w) ** 1.5
+    const source = noiseSource(g, at, 0.04)
+    const band = resonant(
+      filter(g, "bandpass", 1100 + seed(i * 2.3 + w) * 1600),
+      1.4,
+    )
+    const gain = envelope(g, at, {
+      a: 0.001,
+      pk: 0.14 * v * (0.4 + 0.6 * seed(i * 3.1 + w)),
+      d: 0.022,
+    })
+
+    source.connect(band)
+    band.connect(gain)
+    send(g, gain, { rev: 0.3 })
+  }
+
+  for (const [offset, hz] of [
+    [0.35, 2500],
+    [1.2, 2900],
+  ] as const) {
+    const at = w + offset
+    const osc = tone(g, "sine", hz)
+    const gain = g.ctx.createGain()
+
+    osc.frequency.setValueAtTime(hz * 0.8, at)
+    osc.frequency.exponentialRampToValueAtTime(hz, at + 0.15)
+    osc.frequency.setValueAtTime(hz, at + 0.55)
+    osc.frequency.exponentialRampToValueAtTime(hz * 0.7, at + 0.8)
+    gain.gain.setValueAtTime(0.0001, at)
+    gain.gain.exponentialRampToValueAtTime(0.05 * v, at + 0.05)
+    gain.gain.setValueAtTime(0.05 * v, at + 0.6)
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.85)
+    osc.connect(gain)
+    send(g, gain, { rev: 0.4 })
+    osc.start(at)
+    osc.stop(at + 0.9)
+  }
+}
+
 const crash = (g: Bus, w: number, p: { v?: number; d?: number }): void => {
   const { v = 0.5, d = 2.6 } = p
   const source = noiseSource(g, w, d)
@@ -882,6 +1157,11 @@ export const INSTRUMENTS = {
   tick,
   roll,
   chord,
+  brass,
+  timpani,
+  strings,
+  choir,
+  crowd,
   crash,
   swell,
 } as const

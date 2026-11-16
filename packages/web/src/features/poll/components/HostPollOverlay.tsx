@@ -191,16 +191,19 @@ const HostPollOverlay = () => {
           </h2>
           <p
             data-poll-voted
-            className="text-text-muted stage:text-[2.6875rem] relative text-lg font-semibold"
+            className="text-text-muted stage:text-[2.6875rem] text-lg font-semibold"
           >
-            {pulses.map(({ seq }) => (
-              <span
-                key={seq}
-                aria-hidden="true"
-                data-poll-pulse
-                className="rz-arrival-pulse"
-              />
-            ))}
+            {pulses.length > 0 && (
+              <span aria-hidden="true" className="rz-arrival-pulse-anchor">
+                {pulses.map(({ seq }) => (
+                  <span
+                    key={seq}
+                    data-poll-pulse
+                    className="rz-arrival-pulse"
+                  />
+                ))}
+              </span>
+            )}
             {total === 0 && closed ? (
               t("poll:noOneVoted")
             ) : (

@@ -9,16 +9,21 @@ import {
 } from "@razzia/common/utils/result-reveal"
 import { score, verdictSpec } from "@razzia/web/features/game/audio"
 import AnswerTile from "@razzia/web/features/game/components/AnswerTile"
-import FrameHit from "@razzia/web/features/game/components/FrameHit"
 import QuestionCard from "@razzia/web/features/game/components/QuestionCard"
 import QuestionNumber from "@razzia/web/features/game/components/QuestionNumber"
+import StageMoment from "@razzia/web/features/game/components/StageMoment"
 import { useResultClock } from "@razzia/web/features/game/hooks/use-result-clock"
 import { useSceneArrival } from "@razzia/web/features/game/hooks/use-scene-arrival"
 import { useCalmVisuals } from "@razzia/web/features/game/hooks/use-show-intensity"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
+import { useMoodOverride } from "@razzia/web/features/game/stores/mood"
+import {
+  type Flare,
+  rectOf,
+  useFlares,
+} from "@razzia/web/features/game/stores/stage-light"
 import {
   ANSWER_GRID_TRACKS,
-  ANSWERS_LABELS,
   answerSlotPlacement,
 } from "@razzia/web/features/game/utils/game-constants"
 import {
@@ -29,6 +34,7 @@ import {
 import { voteShares } from "@razzia/web/features/game/utils/score"
 import { answerVars } from "@razzia/web/features/game/utils/type-tier"
 import clsx from "clsx"
+import { Check } from "lucide-react"
 import { useReducedMotion } from "motion/react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -37,30 +43,18 @@ interface Props {
   data: ManagerStatusDataMap["SHOW_RESPONSES"]
 }
 
-interface Rect {
-  top: number
-  right: number
-  bottom: number
-  left: number
-}
-
 const easeOut = (progress: number) => 1 - (1 - progress) ** 3
 
-/** Flood type for the right answers: one fills the frame, several share it. */
-const FLOOD_TYPE = [
-  "text-[8rem]",
-  "text-[5.5rem]",
-  "text-[4.25rem]",
-  "text-[3.5rem]",
-]
-
 /**
- * The results, staged on one clock. TIME takes the frame; the rails then grow
+ * The results, staged on one clock. TIME lands where the clock was (or the
+ * poll's "Everyone's in" if the whole room answered) and holds; the rails grow
  * from the letter blocks, smallest first, and the shares count up inside them;
- * everything but the most-picked answer goes dark; then the right answer
- * floods the frame, collapses into its tile, and the headline names who was
- * fooled. A screen that arrives after all that (a reconnect, a lecture review)
- * is simply the final grid, with no flood and no sound.
+ * everything but the most-picked answer dims; then the right answer lights
+ * where it is, rings of green light leave it and a pool of green light rises
+ * behind it, and the headline names who was fooled. Nothing paints the frame
+ * (STYLE.md, "Light, not paint"). A screen that arrives after all that (a
+ * reconnect, a lecture review) is simply the final grid, with no light and no
+ * sound.
  */
 const Responses = ({
   data: {
@@ -82,7 +76,10 @@ const Responses = ({
   const clock = useResultClock({ resultsAt, serverNow })
   const { elapsedMs, phase } = clock
   const grid = useRef<HTMLDivElement>(null)
-  const [floodFrom, setFloodFrom] = useState<Rect | null>(null)
+  const [flares, setFlares] = useState<Flare[]>([])
+  // Decided once: the light and its rings are for a room that is there to see
+  // the strike, not for a reconnect or a review that lands after it.
+  const [live] = useState(elapsedMs < RESULT_STRIKE_MS)
 
   const shares = voteShares(responses, answers.length)
   const crowd = analyzeCrowd(responses, solutions, {
@@ -129,30 +126,31 @@ const Responses = ({
     arrived,
   ])
 
-  // The flood leaves the right tile, so it needs to know where that is. The
-  // tile has just been marked correct in this same commit.
+  // The light leaves the right tiles, so it needs to know where they are. They
+  // have just been marked correct in this same commit.
   useLayoutEffect(() => {
-    if (phase !== "strike" || calm) {
+    if (!verdict || !live || flares.length > 0 || !grid.current) {
       return
     }
 
-    const tile = grid.current?.querySelector<HTMLElement>(
+    const tiles = grid.current.querySelectorAll<HTMLElement>(
       '[data-state="correct"]',
     )
 
-    if (!tile) {
-      return
-    }
+    setFlares(
+      Array.from(tiles, (tile, index) => ({
+        id: `strike-${resultsAt ?? 0}-${index}`,
+        tone: "success",
+        rect: rectOf(tile),
+        rings: 3,
+      })),
+    )
+  }, [verdict, live, flares.length, resultsAt])
 
-    const box = tile.getBoundingClientRect()
+  useFlares(flares)
 
-    setFloodFrom({
-      top: Math.round(box.top),
-      right: Math.round(window.innerWidth - box.right),
-      bottom: Math.round(window.innerHeight - box.bottom),
-      left: Math.round(box.left),
-    })
-  }, [phase, calm])
+  // The last five seconds' warm light holds through TIME, then eases back.
+  useMoodOverride(phase === "time" && live ? "warm" : null)
 
   const shareFor = (slot: number) => {
     const { count, percent } = shares[slot]
@@ -189,6 +187,10 @@ const Responses = ({
     letters: listLetters(headline.letters, i18n.language),
   })
   const timeText = t(crowd.allIn ? "game:reveal.allIn" : "game:reveal.time")
+  // TIME holds in the row until the strike, then rises away for the headline.
+  const timeShown =
+    live && (phase === "time" || phase === "count" || phase === "spotlight")
+  const timeLeaving = live && phase === "strike"
 
   return (
     <section
@@ -198,37 +200,6 @@ const Responses = ({
       data-calm={calm ? "" : undefined}
       className="relative flex min-h-0 w-full flex-1 flex-col"
     >
-      {phase === "time" && !calm && (
-        <FrameHit kind="time" elapsedMs={elapsedMs}>
-          {timeText}
-        </FrameHit>
-      )}
-
-      {phase === "strike" && !calm && floodFrom && (
-        <FrameHit
-          kind="strike"
-          from={floodFrom}
-          elapsedMs={elapsedMs - RESULT_STRIKE_MS}
-        >
-          <div className="flex flex-col gap-10">
-            {solutions.map((slot) => (
-              <div
-                key={slot}
-                className={clsx(
-                  "rz-flood-answer",
-                  FLOOD_TYPE[Math.min(solutions.length, FLOOD_TYPE.length) - 1],
-                )}
-              >
-                <span className="rz-flood-letter">{ANSWERS_LABELS[slot]}</span>
-                <span className="max-w-[60rem] text-[0.5em] leading-tight font-semibold">
-                  {answers[slot]}
-                </span>
-              </div>
-            ))}
-          </div>
-        </FrameHit>
-      )}
-
       <div className="stage:max-w-[105rem] mx-auto flex min-h-0 w-full flex-1 flex-col">
         <div
           data-fit-box
@@ -240,24 +211,42 @@ const Responses = ({
           </div>
         </div>
 
-        {/* Where the clock and the count were: the headline lands here. */}
+        {/* Where the clock and the count were: TIME, then the headline. */}
         <div className="stage:h-28 stage:px-0 relative flex h-14 items-center justify-center px-4">
-          {calm && phase === "time" ? (
-            <p
-              data-time-label
-              className="text-warning stage:text-[3.5rem] text-[2rem] font-extrabold tracking-[0.12em]"
-            >
-              {timeText}
-            </p>
-          ) : (
-            <p
-              data-headline
-              data-shown={elapsedMs >= RESULT_HEADLINE_MS ? "" : undefined}
-              className="rz-headline text-text-primary stage:text-[2.75rem] text-center text-lg leading-tight font-bold text-balance"
-            >
-              {headlineText}
-            </p>
+          {(timeShown || timeLeaving) && (
+            <div className="absolute inset-0 grid place-items-center">
+              {crowd.allIn ? (
+                <StageMoment
+                  tone="brand"
+                  leaving={timeLeaving}
+                  className="stage:gap-5 stage:text-[4rem] flex items-center gap-2 text-[2rem]"
+                >
+                  <span className="rz-arrival-tick bg-brand text-on-accent stage:size-[4.5rem] grid size-9 shrink-0 place-items-center rounded-full">
+                    <Check
+                      aria-hidden="true"
+                      className="stage:size-11 size-5 stroke-3"
+                    />
+                  </span>
+                  <span data-time-label>{timeText}</span>
+                </StageMoment>
+              ) : (
+                <StageMoment
+                  tone="warning"
+                  leaving={timeLeaving}
+                  className="stage:text-[5rem] text-[2.25rem] tracking-[0.12em]"
+                >
+                  <span data-time-label>{timeText}</span>
+                </StageMoment>
+              )}
+            </div>
           )}
+          <p
+            data-headline
+            data-shown={elapsedMs >= RESULT_HEADLINE_MS ? "" : undefined}
+            className="rz-headline text-text-primary stage:text-[2.75rem] text-center text-lg leading-tight font-bold text-balance"
+          >
+            {headlineText}
+          </p>
           {fastest && (
             <p
               data-fastest

@@ -1,5 +1,6 @@
 import Prepared from "@razzia/web/features/game/components/states/Prepared"
 import { useLaunchStore } from "@razzia/web/features/game/stores/launch"
+import { useStageLightStore } from "@razzia/web/features/game/stores/stage-light"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
 import { useQuestionStore } from "@razzia/web/features/game/stores/question"
 import { act, cleanup, render } from "@testing-library/react"
@@ -196,17 +197,38 @@ describe("Prepared round card", () => {
     expect(start.mock.calls).toEqual([[{ scene: "roundCard" }]])
   })
 
-  it("flashes GO once, after the countdown, and clears it", () => {
+  it("lands GO in its light after the countdown, then brings up the card", () => {
     useLaunchStore.getState().arm()
 
     const { container } = render(
       <Prepared data={{ questionNumber: 1, totalAnswers: 4 }} />,
     )
 
+    // GO is a word in the room's light, not a fill over the frame.
     expect(container.querySelector("[data-go]")?.textContent).toBe("game:go")
+    expect(container.querySelector("[data-moment]")).not.toHaveAttribute(
+      "data-leaving",
+    )
+    expect(container.querySelector("[data-hit]")).toBeNull()
+    expect(container.querySelector("[data-round-number]")).toBeNull()
+    expect(useStageLightStore.getState().floor).toEqual({
+      tone: "brand",
+      level: 0.5,
+    })
 
     act(() => {
-      vi.advanceTimersByTime(1_000)
+      vi.advanceTimersByTime(900)
+    })
+
+    // GO rises away as the card comes up under it.
+    expect(container.querySelector("[data-moment]")).toHaveAttribute(
+      "data-leaving",
+    )
+    expect(container.querySelector("[data-round-number]")).not.toBeNull()
+    expect(useStageLightStore.getState().floor).toBeNull()
+
+    act(() => {
+      vi.advanceTimersByTime(400)
     })
 
     expect(container.querySelector("[data-go]")).toBeNull()
@@ -220,7 +242,7 @@ describe("Prepared round card", () => {
     expect(container.querySelector("[data-go]")).toBeNull()
   })
 
-  it("keeps GO out of a calm show, but still uses it up", () => {
+  it("says GO in a calm show too, without its light", () => {
     useManagerStore.getState().setVisuals({ showIntensity: "calm" })
     useLaunchStore.getState().arm()
 
@@ -228,7 +250,9 @@ describe("Prepared round card", () => {
       <Prepared data={{ questionNumber: 1, totalAnswers: 4 }} />,
     )
 
-    expect(container.querySelector("[data-go]")).toBeNull()
+    expect(container.querySelector("[data-moment]")).toHaveAttribute(
+      "data-calm",
+    )
     expect(useLaunchStore.getState().armed).toBe(false)
   })
 })

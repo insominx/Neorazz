@@ -42,7 +42,7 @@
   "lectureJoinHint": "Rejoignez sur {{url}} · PIN {{pin}}",
   "reveal": {
     "time": "TEMPS",
-    "allIn": "TOUS PRÊTS",
+    "allIn": "Tout le monde a répondu",
     "headline": {
       "crowdWrong": "Seulement {{right}} sur {{of}} ont trouvé. {{wrong}} sont tombés dans le piège de {{letters}}.",
       "crowdRight": "{{right}} sur {{of}} ont trouvé.",
@@ -82,6 +82,10 @@
   "seatsMore": "+{{count}} de plus",
   "youreIn": "Vous y êtes, {{name}}",
   "playersHere": "{{count}} présents",
+  "connectedBadge": "Connecté",
+  "waitingForHost": "En attente de l’hôte",
+  "waitNextHint": "Gardez cette page ouverte. La suite s’affichera ici automatiquement.",
+  "watchScreen": "Regardez le grand écran",
   "standingLevel": "À égalité avec {{name}}. Encore une réponse rapide et vous le dépassez.",
   "leave": {
     "title": "Fermer la salle ?",

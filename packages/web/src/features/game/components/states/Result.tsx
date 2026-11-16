@@ -4,11 +4,13 @@ import {
   RESULT_STRIKE_MS,
 } from "@razzia/common/utils/result-reveal"
 import { score } from "@razzia/web/features/game/audio"
-import FrameHit from "@razzia/web/features/game/components/FrameHit"
-import Loader from "@razzia/web/components/Loader"
 import { useResultClock } from "@razzia/web/features/game/hooks/use-result-clock"
 import { useCalmVisuals } from "@razzia/web/features/game/hooks/use-show-intensity"
 import { usePlayerStore } from "@razzia/web/features/game/stores/player"
+import {
+  type LightTone,
+  useFloorLight,
+} from "@razzia/web/features/game/stores/stage-light"
 import { HAPTIC, haptic } from "@razzia/web/features/game/utils/haptics"
 import { formatRank } from "@razzia/web/features/game/utils/rank"
 import clsx from "clsx"
@@ -43,12 +45,21 @@ const VERDICT_COLOR: Record<Verdict, string> = {
 
 const GLYPH = { right: Check, wrong: X, none: Minus } as const
 
+/** The verdict's colour as the light rising from the bottom of the phone. */
+const VERDICT_LIGHT: Record<Verdict, LightTone> = {
+  right: "success",
+  wrong: "danger",
+  none: "neutral",
+}
+
 /**
- * A phone's half of the staged verdict. It holds while the room builds up to
- * it, then on the same beat as the projector's strike it takes the verdict's
- * colour and a glyph and nothing else, so heads stay up. Two seconds later the
- * words arrive: the points, the streak, where you stand, and the right answer
- * if you missed it.
+ * A phone's half of the staged verdict. While the room builds up to it the
+ * phone says to watch the big screen, and nothing on it moves, so heads stay
+ * up. On the same beat as the projector's strike the verdict lands: its badge
+ * (colour and glyph) with one ring of its colour, and a soft glow of that
+ * colour rising from the bottom edge. The phone stays dark (STYLE.md, "Light,
+ * not paint"). Two seconds later the words arrive: the points, the streak,
+ * where you stand, and the right answer if you missed it.
  */
 const Result = ({
   data: {
@@ -113,6 +124,10 @@ const Result = ({
     }
   }, [detailed, myPoints, updatePoints])
 
+  // A phone that was there for the strike gets its light; one that arrives
+  // later lands on the settled screen without it.
+  useFloorLight(struck && live && !calm ? VERDICT_LIGHT[verdict] : null, 0.55)
+
   const stage = (() => {
     if (!struck) {
       return "hold"
@@ -133,27 +148,27 @@ const Result = ({
       style={{ "--rz-verdict": color } as React.CSSProperties}
       className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4"
     >
-      {stage === "hold" && <Loader className="h-30" />}
-
-      {stage === "struck" && !calm && (
-        <FrameHit
-          kind="verdict"
-          color={color}
-          elapsedMs={clock.elapsedMs - RESULT_STRIKE_MS}
+      {stage === "hold" && (
+        <p
+          data-result-hold
+          className="text-text-muted text-center text-2xl font-semibold"
         >
-          <Glyph className="size-40 stroke-[3.5]" aria-label={title} />
-        </FrameHit>
+          {t("game:watchScreen")}
+        </p>
       )}
 
       {stage !== "hold" && (
         <div
+          data-verdict-moment
+          data-calm={calm ? "" : undefined}
           className={clsx(
             "flex flex-col items-center gap-3 text-center",
-            stage === "details" && "animate-rz-fade-in",
+            live && "rz-land",
           )}
         >
           <div
-            className="grid size-32 place-items-center rounded-full text-black"
+            data-calm={calm || !live ? "" : undefined}
+            className="rz-verdict-badge grid size-32 place-items-center rounded-full text-black"
             style={{ background: color, boxShadow: `0 0 4rem ${color}88` }}
           >
             <Glyph className="size-20 stroke-[3.5]" aria-hidden="true" />

@@ -9,6 +9,11 @@ interface Props {
   className?: string
   /** Time is short: the digit grows and heats up, and pulses on every tick. */
   urgent?: boolean
+  /**
+   * Counts arrivals: each new value flashes the digit once, the way a poll's
+   * count steps up (0 never flashes).
+   */
+  flash?: number
 }
 
 const ROLE_LABEL: Record<HudRole, string> = {
@@ -27,6 +32,7 @@ const HudModule = ({
   role,
   className,
   urgent = false,
+  flash = 0,
 }: Props) => (
   <div className={clsx("flex flex-col items-start", className)}>
     <span
@@ -38,13 +44,15 @@ const HudModule = ({
       {label}
     </span>
     <span
-      // A new key restarts the pulse each second of the last five.
-      key={urgent ? value : "calm"}
+      // A new key restarts the pulse each second of the last five, and the
+      // flash on each arrival.
+      key={urgent ? value : `calm-${flash}`}
       data-hud-value
       className={clsx(
         "font-display leading-none font-bold tabular-nums",
         "stage:text-[5rem] text-[2.25rem]",
         urgent ? "text-warning rz-hud-hot" : "text-text-primary",
+        !urgent && flash > 0 && "rz-hud-flash",
       )}
     >
       {value}

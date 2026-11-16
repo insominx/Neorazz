@@ -42,7 +42,7 @@
   "lectureJoinHint": "{{url}} で参加 · PIN {{pin}}",
   "reveal": {
     "time": "終了",
-    "allIn": "全員回答",
+    "allIn": "全員が回答しました",
     "headline": {
       "crowdWrong": "正解は{{of}}人中{{right}}人だけ。{{wrong}}人が{{letters}}にだまされました。",
       "crowdRight": "{{of}}人中{{right}}人が正解。",
@@ -82,6 +82,10 @@
   "seatsMore": "ほか{{count}}人",
   "youreIn": "{{name}}さん、参加できました",
   "playersHere": "{{count}}人が参加中",
+  "connectedBadge": "接続済み",
+  "waitingForHost": "ホストを待っています",
+  "waitNextHint": "このページを開いたままにしてください。次の内容は自動でここに表示されます。",
+  "watchScreen": "大きな画面を見てください",
   "standingLevel": "{{name}}さんと同点です。次の素早い正解で追い抜けます。",
   "leave": {
     "title": "ルームを閉じますか？",

@@ -93,6 +93,12 @@ export const BOARD_REORDER_S = 3
  */
 export const PODIUM_T = { third: 1, second: 3.5, roll: 5, first: 9 } as const
 
+/** Seconds the first-place finale lasts, before the crowd's fade. */
+export const STADIUM_S = 4.6
+
+/** The steps of the major scale the roll's swell climbs into first place. */
+const SWELL_SCALE = [0, 2, 4, 5, 7, 9, 11, 12] as const
+
 export const PODIUM_GAP_S = 2.5
 
 /** Seconds after the lamps scene starts: three clunks, then GO. */
@@ -1070,16 +1076,19 @@ const podium = (
   const first = PODIUM_T.first - shift
   const hits: SceneEvent[] = []
 
+  // Chosen by the instructor in the podium sound lab (2026-11-15): timpani and
+  // strings for third and second, a string swell climbing under the roll, and
+  // "Stadium" for first: full brass, a choir, timpani and a cheering room.
+  const loud = c.calm ? 0.6 : 1
+
   if (places >= 3) {
     hits.push(
-      ev(PODIUM_T.third, "impact", { v: 0.7, rev: 0.4 }),
-      ev(PODIUM_T.third, "stab", {
-        notes: trAll(c, [45, 57, 60]),
-        dur: 0.8,
-        v: 0.7,
-        cut: 1600,
-        rev: 0.5,
-        dly: 0.2,
+      ev(PODIUM_T.third, "timpani", { m: tr(c, 36), v: 1 }),
+      ev(PODIUM_T.third, "strings", {
+        notes: trAll(c, [45, 52, 57, 60]),
+        dur: 2,
+        v: 0.8 * loud,
+        att: 0.3,
       }),
     )
   }
@@ -1088,33 +1097,49 @@ const podium = (
     const at = PODIUM_T.second - (places === 2 ? PODIUM_GAP_S : 0)
 
     hits.push(
-      ev(at, "impact", { v: 0.85, rev: 0.45 }),
-      ev(at, "stab", {
-        notes: trAll(c, [41, 57, 60, 65]),
-        dur: 0.9,
-        v: 0.8,
-        cut: 2400,
-        rev: 0.5,
-        dly: 0.2,
+      ev(at, "timpani", { m: tr(c, 31), v: 1.1 }),
+      ev(at, "strings", {
+        notes: trAll(c, [41, 48, 53, 57, 65]),
+        dur: 1.4,
+        v: 0.9 * loud,
+        att: 0.3,
       }),
     )
   }
 
+  const rollS = first - roll
+
   hits.push(
-    ev(roll, "roll", { dur: first - roll, v: c.calm ? 0.5 : 1 }),
-    ev(roll, "riser", { dur: first - roll, v: 0.26, lo: 500, hi: 9000 }),
-    ev(first, "impact", { v: 1.2, rev: 0.7 }),
-    ev(first, "crash", { v: 0.5, d: 3.4 }),
-    ev(first, "chord", {
-      notes: trAll(c, [48, 60, 64, 67, 72]),
-      v: 1.05,
-      dur: 3,
+    ev(roll, "strings", {
+      notes: trAll(c, [43, 50, 55, 59]),
+      dur: rollS - 0.2,
+      v: 0.9 * loud,
+      att: rollS * 0.8,
+      cut: 2400,
     }),
-    ev(first + 1.25, "whoosh", { dur: 0.3, v: 0.16 }),
+    ev(roll, "riser", { dur: rollS, v: 0.22, lo: 500, hi: 9000 }),
+    // A scale up into the hit over the roll's last second.
+    ...SWELL_SCALE.map((step, k) =>
+      ev(first - 1 + k * S16, "pluck", { m: tr(c, 67 + step), v: 0.3 }),
+    ),
+    ev(first, "impact", { v: 1.3, rev: 0.7 }),
+    ev(first, "crash", { v: 0.6, d: 4 }),
+    ev(first, "brass", {
+      notes: trAll(c, [36, 48, 55, 60, 64, 67, 72, 76]),
+      dur: 3.4,
+      v: 1.1 * loud,
+    }),
+    ev(first, "choir", {
+      notes: trAll(c, [60, 64, 67, 72]),
+      dur: 3.6,
+      v: 0.9 * loud,
+    }),
+    ev(first, "timpani", { m: tr(c, 36), v: 1.2 }),
+    ev(first - 0.05, "crowd", { dur: 5, v: 1 }),
   )
 
-  // The groove starts on the first bar line after first place has landed.
-  const grooveAt = Math.ceil((first + 1) / 2) * 2
+  // The groove starts on the first bar line after the finale has rung out.
+  const grooveAt = Math.ceil((first + STADIUM_S - 0.5) / 2) * 2
 
   const music = (i: number) => {
     const t = i * S16
@@ -1133,7 +1158,7 @@ const podium = (
       )
     }
 
-    if (s === 0 && t >= first) {
+    if (s === 0 && t >= grooveAt) {
       events.push(
         ev(t, "pad", {
           notes: trAll(c, LIFT[mod(bar, 4)].slice(1)),
@@ -1214,7 +1239,7 @@ const podium = (
         name: "podium",
         lane: "show",
         key,
-        end: first + 2,
+        end: first + STADIUM_S,
         cuts: [
           { lane: "bed", fadeS: 0.4 },
           { lane: "verdict", fadeS: 0.4 },

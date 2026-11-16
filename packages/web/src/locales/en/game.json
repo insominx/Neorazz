@@ -46,7 +46,7 @@
   "lectureJoinHint": "Join at {{url}} · PIN {{pin}}",
   "reveal": {
     "time": "TIME",
-    "allIn": "ALL IN",
+    "allIn": "Everyone's in",
     "headline": {
       "crowdWrong": "Only {{right}} of {{of}} got it. {{wrong}} fell for {{letters}}.",
       "crowdRight": "{{right}} of {{of}} got it.",
@@ -86,6 +86,10 @@
   "seatsMore": "+{{count}} more",
   "youreIn": "You're in, {{name}}",
   "playersHere": "{{count}} here",
+  "connectedBadge": "Connected",
+  "waitingForHost": "Waiting for the host",
+  "waitNextHint": "Keep this page open. What comes next shows up here on its own.",
+  "watchScreen": "Watch the big screen",
   "standingLevel": "Level with {{name}}. One more fast answer and you pass them.",
   "leave": {
     "title": "Close the room?",

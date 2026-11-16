@@ -7,8 +7,13 @@ import {
   type Mood,
   MOODS,
 } from "@razzia/web/features/game/stores/mood"
+import {
+  type Flare,
+  type FloorLight,
+  LIGHT_RGB,
+} from "@razzia/web/features/game/stores/stage-light"
 import clsx from "clsx"
-import { type CSSProperties, useState } from "react"
+import { type CSSProperties, useRef, useState } from "react"
 
 type PhotoPlacement = "viewport" | "container"
 
@@ -20,7 +25,7 @@ type Props =
       placement?: PhotoPlacement
       /** The colour of the light. Defaults to the cool, quiet one. */
       mood?: Mood
-      /** Leaves out beams and embers (Calm, Silent, reduced motion). */
+      /** Leaves out beams, flares and the floor light (Calm, Silent, reduced motion). */
       calm?: boolean
       /**
        * The room's light, rising from the bottom of the frame: 0 to 1 (a
@@ -29,6 +34,12 @@ type Props =
       lift?: number
       /** Counts heartbeats; each new value breathes the room's light once. */
       breath?: number
+      /** A moment's light rising from the floor, in its own colour. */
+      floor?: FloorLight | null
+      /** Moments' pools of light, with rings leaving what they sit behind. */
+      flares?: Flare[]
+      /** The beams turn in toward the centre. */
+      focus?: boolean
     }
 
 const Atmosphere = (props: Props) => {
@@ -54,21 +65,37 @@ const Atmosphere = (props: Props) => {
       calm={props.calm}
       lift={props.lift}
       breath={props.breath}
+      floor={props.floor}
+      flares={props.flares}
+      focus={props.focus}
     />
   )
 }
 
 const BEAMS = ["left", "right"] as const
 
-/** Twelve embers, spread by CSS; they only exist while the room runs warm. */
-const EMBERS = Array.from({ length: 12 }, (_, index) => index)
+/**
+ * The floor light keeps its last colour while it fades out, so it never
+ * changes colour on the way down.
+ */
+const useLastTone = (floor: FloorLight | null | undefined) => {
+  const last = useRef<FloorLight["tone"]>("brand")
+
+  if (floor) {
+    last.current = floor.tone
+  }
+
+  return last.current
+}
 
 /**
  * Light made in code: a deep navy gradient, a coloured glow per mood that
  * crossfades as the game moves, and (in the full show) beams at the opening
- * and the finale and embers in the last seconds. There is no photo by default,
- * so a phone downloads nothing for it; a teacher's uploaded background sits
- * above the gradient and under the glow.
+ * and the finale. A moment adds its own light (STYLE.md, "Light, not paint"):
+ * a glow rising from the floor, and pools of light with rings leaving what
+ * they sit behind. There is no photo by default, so a phone downloads nothing
+ * for it; a teacher's uploaded background sits above the gradient and under
+ * the glow.
  */
 const PhotoAtmosphere = ({
   backgroundUrl,
@@ -77,6 +104,9 @@ const PhotoAtmosphere = ({
   calm = false,
   lift,
   breath = 0,
+  floor = null,
+  flares = [],
+  focus = false,
 }: {
   backgroundUrl?: string
   placement?: PhotoPlacement
@@ -84,12 +114,16 @@ const PhotoAtmosphere = ({
   calm?: boolean
   lift?: number
   breath?: number
+  floor?: FloorLight | null
+  flares?: Flare[]
+  focus?: boolean
 }) => {
   const [failed, setFailed] = useState(false)
   const [darkPhoto, setDarkPhoto] = useState(false)
   const photo = backgroundUrl && !failed ? backgroundUrl : null
   const beams = !calm && BEAM_MOODS.includes(mood)
-  const embers = !calm && mood === "warm"
+  const floorTone = useLastTone(floor)
+  const floorLevel = floor && !calm ? floor.level : 0
 
   return (
     <div
@@ -148,20 +182,54 @@ const PhotoAtmosphere = ({
           style={{ "--rz-lift": lift } as CSSProperties}
         />
       )}
+      <div
+        className="rz-floor"
+        data-floor={floorLevel > 0 ? floorTone : undefined}
+        style={
+          {
+            "--rz-light": LIGHT_RGB[floorTone],
+            opacity: floorLevel,
+          } as CSSProperties
+        }
+      />
+      {!calm &&
+        flares.map((flare) => (
+          <div
+            key={flare.id}
+            className="rz-flare"
+            data-flare={flare.tone}
+            style={
+              {
+                "--rz-light": LIGHT_RGB[flare.tone],
+                "--rz-flare-x": `${flare.rect.left + flare.rect.width / 2}px`,
+                "--rz-flare-y": `${flare.rect.top + flare.rect.height / 2}px`,
+              } as CSSProperties
+            }
+          >
+            {Array.from({ length: flare.rings }, (_, index) => (
+              <span
+                key={index}
+                className="rz-flare-ring"
+                data-round={flare.round ? "" : undefined}
+                style={{
+                  top: flare.rect.top,
+                  left: flare.rect.left,
+                  width: flare.rect.width,
+                  height: flare.rect.height,
+                  animationDelay: `${index * 280}ms`,
+                }}
+              />
+            ))}
+          </div>
+        ))}
       {BEAMS.map((side) => (
         <div
           key={side}
           className={clsx("rz-beam", `rz-beam-${side}`)}
           data-on={beams ? "" : undefined}
+          data-focus={beams && focus ? "" : undefined}
         />
       ))}
-      {embers && (
-        <div className="rz-embers" data-embers="">
-          {EMBERS.map((index) => (
-            <span key={index} className="rz-ember" />
-          ))}
-        </div>
-      )}
     </div>
   )
 }

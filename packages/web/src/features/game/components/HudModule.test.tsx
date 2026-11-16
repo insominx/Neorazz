@@ -44,6 +44,28 @@ describe("HudModule", () => {
     expect(screen.getByText("14")).not.toHaveClass("text-warning")
   })
 
+  it("flashes the count on each arrival, like a poll's count", () => {
+    const { rerender } = render(
+      <HudModule label="ANSWERED" value="0/18" role="sequence" flash={0} />,
+    )
+
+    expect(screen.getByText("0/18")).not.toHaveClass("rz-hud-flash")
+
+    rerender(
+      <HudModule label="ANSWERED" value="1/18" role="sequence" flash={1} />,
+    )
+    const first = screen.getByText("1/18")
+
+    expect(first).toHaveClass("rz-hud-flash")
+
+    rerender(
+      <HudModule label="ANSWERED" value="2/18" role="sequence" flash={2} />,
+    )
+
+    // A new element each time, so the flash plays again.
+    expect(screen.getByText("2/18")).not.toBe(first)
+  })
+
   it("keeps the label in its role colour", () => {
     render(<HudModule label="TIME" value="17" role="info" />)
 

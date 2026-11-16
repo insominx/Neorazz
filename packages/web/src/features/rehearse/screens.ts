@@ -18,6 +18,11 @@ export const FIXTURES = [
   { id: "room-60", label: "Room · 60 players", views: ["host"] },
   { id: "start", label: "Start", views: ["host", "phone"] },
   { id: "prepared", label: "Prepared", views: ["host", "phone"] },
+  {
+    id: "prepared-go",
+    label: "Prepared · GO (live)",
+    views: ["host", "phone"],
+  },
   { id: "question", label: "Question", views: ["host", "phone"] },
   { id: "answers", label: "Answers", views: ["host", "phone"] },
   { id: "result", label: "Result", views: ["phone"] },
@@ -36,6 +41,7 @@ export const FIXTURES = [
   { id: "finished-mid", label: "Finished · mid-table", views: ["phone"] },
   { id: "wait", label: "Wait · locked in", views: ["phone"] },
   { id: "wait-lobby", label: "Wait · plain", views: ["phone"] },
+  { id: "poll-arrivals", label: "Poll · arrivals (live)", views: ["host"] },
 ] as const satisfies ReadonlyArray<{
   id: string
   label: string
@@ -85,6 +91,7 @@ export const crowd = (count: number): PublicPlayer[] =>
 const CROWDS: Partial<Record<FixtureId, number>> = {
   "room-30": 30,
   "room-60": 60,
+  "poll-arrivals": CROWD_SIZE,
 }
 
 /** Who is in the room for a fixture: three players, or a crowd. */
@@ -379,6 +386,13 @@ export const statusForQuestion = (
         data: { totalAnswers: question.answers.length, questionNumber: number },
       }
 
+    // The first card after the countdown: the Director arms its GO.
+    case "prepared-go":
+      return {
+        name: STATUS.SHOW_PREPARED,
+        data: { totalAnswers: question.answers.length, questionNumber: number },
+      }
+
     case "question":
       return {
         name: STATUS.SHOW_QUESTION,
@@ -460,5 +474,9 @@ export const statusForQuestion = (
 
     case "wait-lobby":
       return { name: STATUS.WAIT, data: { text: "game:waitingForPlayers" } }
+
+    // The lobby under a poll; the Director runs the poll's room over it.
+    case "poll-arrivals":
+      return roomStatus()
   }
 }

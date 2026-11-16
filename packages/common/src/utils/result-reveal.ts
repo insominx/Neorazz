@@ -24,7 +24,10 @@ export const RESULT_SPOTLIGHT_MS = 2_250
 
 export const RESULT_STRIKE_MS = 3_000
 
-/** How long the strike's flood takes to fill the frame, hold, and collapse. */
+/**
+ * How long the strike holds before the grid settles: the right answer's light
+ * and its rings (the name is from when this was a full-frame flood).
+ */
 export const RESULT_FLOOD_MS = 1_500
 
 export const RESULT_SETTLED_MS = RESULT_STRIKE_MS + RESULT_FLOOD_MS

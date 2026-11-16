@@ -1,18 +1,26 @@
 import type { ManagerStatusDataMap } from "@razzia/common/types/game/status"
 import { score } from "@razzia/web/features/game/audio"
-import FrameHit from "@razzia/web/features/game/components/FrameHit"
+import StageMoment from "@razzia/web/features/game/components/StageMoment"
 import { useCalmVisuals } from "@razzia/web/features/game/hooks/use-show-intensity"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
+import {
+  centreOf,
+  type Flare,
+  rectOf,
+  useBeamFocus,
+  useFlares,
+  useFloorLight,
+} from "@razzia/web/features/game/stores/stage-light"
 import { MEDAL } from "@razzia/web/features/game/utils/game-constants"
 import {
   CONFETTI_MS,
   podiumTimes,
-  WINNER_FLOOD_MS,
+  WINNER_MOMENT_MS,
 } from "@razzia/web/features/game/utils/board"
 import useScreenSize from "@razzia/web/hooks/useScreenSize"
 import clsx from "clsx"
 import { motion, useReducedMotion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import ReactConfetti from "react-confetti"
 
 interface Props {
@@ -25,7 +33,8 @@ interface Stage {
   /** The roll: first place is about to be named. */
   rolling: boolean
   first: boolean
-  flood: boolean
+  /** The winner's name holds over the podium. */
+  moment: boolean
   confetti: boolean
 }
 
@@ -34,7 +43,7 @@ const START: Stage = {
   second: false,
   rolling: false,
   first: false,
-  flood: false,
+  moment: false,
   confetti: false,
 }
 
@@ -63,10 +72,10 @@ const usePodiumStage = (players: number): Stage => {
       at(times.first, {
         first: true,
         rolling: false,
-        flood: true,
+        moment: true,
         confetti: true,
       }),
-      at(times.first + WINNER_FLOOD_MS / 1_000, { flood: false }),
+      at(times.first + WINNER_MOMENT_MS / 1_000, { moment: false }),
       at(times.first + CONFETTI_MS / 1_000, { confetti: false }),
     ]
 
@@ -109,6 +118,13 @@ const BLOCK_REM = { 1: 30, 2: 23, 3: 17 } as const
 
 const SPRING = { type: "spring", stiffness: 170, damping: 17, mass: 1 } as const
 
+/**
+ * A block rises on the spring but fades in on its own, linear and slower, so a
+ * solid medal colour never pops in at full brightness (STYLE.md, "Light, not
+ * paint").
+ */
+const RISE = { ...SPRING, opacity: { duration: 0.6, ease: "linear" } } as const
+
 type PodiumPlace = 1 | 2 | 3
 
 interface PlaceProps {
@@ -143,7 +159,7 @@ const Place = ({ rank, place, name, points, up, instant }: PlaceProps) => (
     data-up={up}
     initial={false}
     animate={{ y: up ? 0 : "115%", opacity: up ? 1 : 0 }}
-    transition={instant ? { duration: 0 } : SPRING}
+    transition={instant ? { duration: 0 } : RISE}
     className="flex w-full flex-col items-center gap-4"
   >
     <p className={PODIUM_NAME}>{name}</p>
@@ -164,8 +180,14 @@ const Place = ({ rank, place, name, points, up, instant }: PlaceProps) => (
   </motion.div>
 )
 
+/** The winner's name, landing in gold over the podium. */
+const WINNER_NAME =
+  "stage:text-[7rem] line-clamp-1 max-w-full px-6 text-center text-6xl wrap-break-word"
+
 const Podium = ({ data: { subject, top } }: Props) => {
   const stage = usePodiumStage(top.length)
+  const firstColumn = useRef<HTMLDivElement>(null)
+  const [flares, setFlares] = useState<Flare[]>([])
   // A reviewed podium must not cut the live game's bed.
   const reviewing = useManagerStore((state) => state.review !== null)
 
@@ -192,6 +214,28 @@ const Podium = ({ data: { subject, top } }: Props) => {
   const second = top.at(1)
   const third = top.at(2)
 
+  // The roll: the beams turn in over first place, and stay on the winner for
+  // the moment. First place: gold light rises from the floor and stays, and a
+  // ring of gold leaves the block as it rises (STYLE.md, "Light, not paint").
+  useBeamFocus(stage.rolling || stage.moment)
+  useFloorLight(stage.first ? "gold" : null, 1)
+
+  useLayoutEffect(() => {
+    if (stage.first && firstColumn.current) {
+      setFlares([
+        {
+          id: "winner",
+          tone: "gold",
+          rect: centreOf(rectOf(firstColumn.current)),
+          rings: 2,
+          round: true,
+        },
+      ])
+    }
+  }, [stage.first])
+
+  useFlares(flares)
+
   return (
     <>
       {stage.confetti && !calm && (
@@ -205,22 +249,24 @@ const Podium = ({ data: { subject, top } }: Props) => {
         />
       )}
 
-      {stage.flood && !calm && first && (
-        <FrameHit kind="winner">
-          <span data-podium-winner>{first.username}</span>
-        </FrameHit>
-      )}
-
-      {(stage.rolling || stage.first) && top.length >= 2 && !calm && (
-        <div className="pointer-events-none absolute min-h-dvh w-full overflow-hidden">
-          <div className="spotlight"></div>
-        </div>
-      )}
-
-      <section className="relative mx-auto flex w-full max-w-[100rem] flex-1 flex-col items-center justify-between overflow-x-clip pb-[5.4rem]">
+      <section className="animate-rz-screen-in relative mx-auto flex w-full max-w-[100rem] flex-1 flex-col items-center justify-between overflow-x-clip pb-[5.4rem]">
         <h2 className="text-text-primary mt-6 text-center text-6xl font-bold">
           {subject}
         </h2>
+
+        {/* The winner's name lands here, between the title and the podium, and
+            holds for the moment. The room is reserved so nothing moves. */}
+        <div className="stage:h-[9rem] grid h-24 w-full place-items-center">
+          {first && stage.first && (
+            <StageMoment
+              tone="gold"
+              leaving={!stage.moment}
+              className={WINNER_NAME}
+            >
+              <span data-podium-winner>{first.username}</span>
+            </StageMoment>
+          )}
+        </div>
 
         {/* The floor: places stand on it, and a place that has not risen yet
             is below it and clipped. */}
@@ -244,7 +290,7 @@ const Podium = ({ data: { subject, top } }: Props) => {
           )}
 
           {first && (
-            <div className="relative z-30 self-end">
+            <div ref={firstColumn} className="relative z-30 self-end">
               {stage.rolling && (
                 <div
                   data-podium-envelope
