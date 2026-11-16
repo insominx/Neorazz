@@ -124,6 +124,10 @@ export const useDeckBridge = () => {
   const gameQuiz = useRef<{ gameId: string; quiz: string } | null>(null)
   // When a leave went out with a create still on the wire.
   const abandonedCreateAt = useRef<number | null>(null)
+  // The deck asked for the question box closed (`askBox { open: false }`):
+  // applied to every room this page becomes the manager of, for as long as
+  // the page lives in the frame.
+  const askBoxHeldClosed = useRef(false)
 
   const state = buildBridgeState({
     connected: isConnected,
@@ -372,6 +376,33 @@ export const useDeckBridge = () => {
     }
   }
 
+  // Sets the room's question box, fire and forget: the deck is never sent a
+  // reply, and reads the result in `asks.open`.
+  const sendAskBox = (target: string, open: boolean) => {
+    socket.emit(EVENTS.MANAGER.SET_ASK_BOX, { gameId: target, open }, () => {
+      // The outcome changes nothing here; the room's state says what happened.
+    })
+  }
+
+  // `false` is held and applied now if this page hosts a lecture room; `true`
+  // is applied once and drops the hold, so a reattach never undoes a pause
+  // the presenter made from the inbox.
+  const runAskBox = (open: boolean) => {
+    askBoxHeldClosed.current = !open
+
+    if (attached && gameId && lecture) {
+      sendAskBox(gameId, open)
+    }
+  }
+
+  // Each time this page becomes a lecture room's manager (a room it made, one
+  // it resumed, a reattach), a box the deck holds closed is closed there too.
+  const reapplyAskBox = (target: string | undefined, isLecture: boolean) => {
+    if (askBoxHeldClosed.current && target && isLecture) {
+      sendAskBox(target, false)
+    }
+  }
+
   // Only a poll that closed in the game this page hosts can be shown again.
   const showPollAgain = (id: string | null) => {
     const done =
@@ -602,6 +633,13 @@ export const useDeckBridge = () => {
       return
     }
 
+    // No reply, whatever happens: the deck reads `asks.open`.
+    if (command.type === "askBox") {
+      runAskBox(command.open)
+
+      return
+    }
+
     if (isPollCommand(command)) {
       runPoll(command)
 
@@ -721,13 +759,16 @@ export const useDeckBridge = () => {
     setLoggedIn(false)
   })
 
-  useEvent(EVENTS.MANAGER.SUCCESS_RECONNECT, () => {
+  useEvent(EVENTS.MANAGER.SUCCESS_RECONNECT, (payload) => {
     setAttached(true)
     stopRetry()
     runHeld()
+    reapplyAskBox(payload.gameId, payload.lecture !== undefined)
   })
 
-  useEvent(EVENTS.MANAGER.GAME_CREATED, ({ gameId: createdId }) => {
+  useEvent(EVENTS.MANAGER.GAME_CREATED, (payload) => {
+    const { gameId: createdId } = payload
+
     const abandonedAt = abandonedCreateAt.current
     abandonedCreateAt.current = null
 
@@ -755,6 +796,7 @@ export const useDeckBridge = () => {
     createSentAt.current = null
     setPlayers(0)
     setAttached(true)
+    reapplyAskBox(createdId, payload.lecture !== undefined)
   })
 
   useEvent(EVENTS.GAME.TOTAL_PLAYERS, (count) => {

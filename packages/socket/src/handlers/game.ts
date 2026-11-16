@@ -412,6 +412,45 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
     }),
   )
 
+  // A question for the presenter. Nothing about it is logged here, whatever
+  // the outcome. A room that is not there answers `notPlayer` through the ack,
+  // not `game:errorMessage`, so the phone shows its own line and no toast.
+  socket.on(EVENTS.ASK.SEND, (message, ack) => {
+    const fields = fieldsOf(message)
+    const gameId = textOf(fields.gameId)
+    const game = gameId ? registry.getGameById(gameId) : undefined
+    const outcome = game
+      ? game.sendAsk(socket, {
+          text: fields.text,
+          signed: fields.signed,
+          nonce: fields.nonce,
+        })
+      : "notPlayer"
+
+    ackOf(ack)?.(outcome)
+  })
+
+  // A phone asks whether it can send; a room that is gone answers `null`.
+  socket.on(EVENTS.ASK.SYNC, (message) => {
+    const gameId = gameIdOf(message)
+    const game = gameId ? registry.getGameById(gameId) : undefined
+
+    if (game) {
+      game.syncAsks(socket)
+    } else {
+      socket.emit(EVENTS.ASK.BOX, null)
+    }
+  })
+
+  // The game's manager opens or closes the room's question box.
+  socket.on(EVENTS.MANAGER.SET_ASK_BOX, (message, ack) =>
+    withGame(gameIdOf(message), socket, (game) => {
+      const outcome = game.setAskBox(socket, fieldsOf(message).open)
+
+      ackOf(ack)?.(outcome)
+    }),
+  )
+
   socket.on(EVENTS.MANAGER.LEAVE, (message) => {
     const gameId = gameIdOf(message)
 

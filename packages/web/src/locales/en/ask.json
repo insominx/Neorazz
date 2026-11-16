@@ -1,0 +1,63 @@
+{
+  "button": "Ask",
+  "title": "Ask the presenter",
+  "close": "Close",
+  "placeholder": "Type your question",
+  "sign": "Add my name",
+  "send": "Send",
+  "sending": "Sending…",
+  "privacy": {
+    "private": "Only the presenter can read it. No name is attached unless you add it.",
+    "count": "The screen shows a count when a question arrives.",
+    "kept": "Questions are kept so the presenter can read them later."
+  },
+  "outcome": {
+    "accepted": "Sent.",
+    "noAck": "It may not have arrived. Sending it again is safe.",
+    "tooFast": "Wait a few seconds before sending another.",
+    "tooMany": "You have sent as many questions as this room allows.",
+    "closed": "The presenter has paused questions.",
+    "full": "This room cannot take more questions.",
+    "invalid": "A question needs 1 to 500 characters.",
+    "notPlayer": "You are no longer in this room.",
+    "notLecture": "This room does not take questions."
+  },
+  "inbox": {
+    "title": "Questions",
+    "live": "Live",
+    "reveal": "Show questions",
+    "hideQuestions": "Hide questions",
+    "curtainNote": "Questions stay hidden until you show them, and hide again when you leave this page.",
+    "waiting_one": "{{count}} new",
+    "waiting_other": "{{count}} new",
+    "total_one": "{{count}} question",
+    "total_other": "{{count}} questions",
+    "liveRoom": "Live room",
+    "pin": "PIN {{pin}}",
+    "paused": "paused",
+    "notSaved": "not saved yet",
+    "pause": "Pause",
+    "resume": "Resume",
+    "gotIt": "Got it",
+    "gotAll": "Got it, all",
+    "answered": "Answered",
+    "delete": "Delete",
+    "state": {
+      "new": "New",
+      "seen": "Seen",
+      "answered": "Answered"
+    },
+    "anonymous": "No name",
+    "empty": "No questions yet.",
+    "nothing": "No rooms or questions yet.",
+    "open": "Show",
+    "hide": "Hide",
+    "deleteAskTitle": "Delete this question?",
+    "deleteAskBody": "It is removed for good.",
+    "deleteRecord": "Delete record",
+    "deleteRecordTitle": "Delete this record?",
+    "deleteRecordBody": "All its questions are removed for good.",
+    "failed": "That did not go through. Try again.",
+    "framed": "Open this page on its own, not inside another page."
+  }
+}

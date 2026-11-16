@@ -107,6 +107,14 @@ const deckCommandSchema = z.discriminatedUnion("type", [
     type: z.literal("reviewPoll"),
     id: z.string().max(64).nullable(),
   }),
+  // The room's question box. `false` is held by this page and applied to every
+  // room it becomes the manager of; `true` opens it once and drops the hold.
+  // There is no reply: the deck reads `asks.open` in a later status.
+  z.object({
+    ...envelope,
+    type: z.literal("askBox"),
+    open: z.boolean(),
+  }),
 ])
 
 export type DeckCommand = z.infer<typeof deckCommandSchema>
@@ -160,12 +168,16 @@ export const isPollCommand = (command: DeckCommand): command is PollCommand =>
 // button then shows only with its other controls (the deck's Q key).
 // `pollAfterPodium`: a lecture room still runs polls, and lets newcomers in,
 // once its final standings have shown.
+// `asks`: the room's private question box: `BridgeState.asks` (a count and
+// whether phones can send, never a question or a name) and the `askBox`
+// command.
 export const FEATURES: readonly string[] = [
   "poll",
   "pollInline",
   "pollReview",
   "sound",
   "pollAfterPodium",
+  "asks",
 ]
 
 // The poll showing on the stage. Never a name, whatever the poll.
@@ -222,6 +234,15 @@ export interface BridgeState {
   // The host's sound setting, for the deck's own button. Not the silence the
   // deck asks for while it hides this page.
   sound: { muted: boolean; volume: number }
+  // The room's question box while this page is attached to a lecture room:
+  // how many new questions (0 to 10, where 10 is "9+") and whether phones can
+  // send. Null otherwise. Never a question's text, a name or a record.
+  asks: BridgeAsks | null
+}
+
+export interface BridgeAsks {
+  waiting: number
+  open: boolean
 }
 
 export type BridgeErrorCode =

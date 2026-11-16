@@ -1,5 +1,12 @@
 import { EVENTS } from "@razzia/common/constants"
 import type {
+  AskBoxOutcome,
+  AskOutcome,
+  AskRecord,
+  AskRoomView,
+  AskState,
+} from "@razzia/common/types/ask"
+import type {
   GameResult,
   LectureOutcome,
   LectureState,
@@ -19,7 +26,14 @@ import type {
   PollVoteOutcome,
 } from "@razzia/common/types/poll"
 import type { ResolvedVisuals } from "@razzia/common/types/visuals"
+import { saveAskRecord } from "@razzia/socket/services/ask-store"
 import { saveResult } from "@razzia/socket/services/config"
+import {
+  type AskChange,
+  AskManager,
+  type AskMarkOutcome,
+} from "@razzia/socket/services/game/ask-manager"
+import { askRoomSignal } from "@razzia/socket/services/game/ask-signal"
 import { CooldownTimer } from "@razzia/socket/services/game/cooldown-timer"
 import {
   DROP_GRACE_MS,
@@ -54,6 +68,9 @@ interface GameOptions {
   // Keeps what a poll leaves behind; `false` says it could not be kept. By
   // default it goes to `config/poll-results/`; tests hand in their own.
   onPollSettled?: (_record: PollResultRecord) => boolean
+  // Keeps a lecture room's questions; `false` says it could not. By default
+  // it goes to `config/asks/`; tests hand in their own.
+  saveAsks?: (_record: AskRecord) => boolean
 }
 
 interface StatusSnapshot {
@@ -110,6 +127,8 @@ class Game {
   private readonly playerManager: PlayerManager
   private readonly round: RoundManager
   private readonly poll: PollManager
+  // A lecture room's question box; a normal game has none.
+  private readonly asks: AskManager | null
   private readonly cooldown: CooldownTimer
 
   private lastBroadcastStatus: {
@@ -139,6 +158,7 @@ class Game {
     visuals,
     lecture = false,
     onPollSettled = savePollResult,
+    saveAsks = saveAskRecord,
   }: GameOptions) {
     const clientId = socket.handshake.auth.clientId as string
 
@@ -194,6 +214,16 @@ class Game {
       onSettled: onPollSettled,
     })
 
+    this.asks = lecture
+      ? new AskManager({
+          gameSubject: quizz.subject,
+          save: saveAsks,
+          onChanged: (change) => {
+            this.onAsksChanged(change)
+          },
+        })
+      : null
+
     // What a resyncing manager gets back while the game is still a lobby.
     this.managerStatus = {
       name: STATUS.SHOW_ROOM,
@@ -211,6 +241,12 @@ class Game {
     console.log(
       `New game created: ${this.inviteCode} subject: ${quizz.subject}`,
     )
+
+    // The inbox lists a lecture room from the start, so a room without
+    // questions can still be paused.
+    if (this.asks) {
+      askRoomSignal.opened(this)
+    }
   }
 
   get manager() {
@@ -245,10 +281,13 @@ class Game {
   // ── Lecture state ────────────────────────────────────────────────────────
 
   private lectureState(): LectureState {
+    const asks = this.asks?.count()
+
     return {
       inviteCode: this.inviteCode,
       ...this.round.getLectureProgress(),
       ...(this.pollsDone.length ? { pollsDone: [...this.pollsDone] } : {}),
+      ...(asks ? { asks } : {}),
     }
   }
 
@@ -558,10 +597,15 @@ class Game {
     // Before stop(): a stopped round no longer reports what was played.
     this.saveUnfinishedLecture()
     this.settlePoll()
+    this.settleAsks()
     this.poll.stop()
     this.round.stop()
     this.io.to(this.gameId).emit(EVENTS.GAME.RESET, message)
     this.io.in(this.gameId).socketsLeave(this.gameId)
+
+    if (this.asks) {
+      askRoomSignal.closed(this)
+    }
   }
 
   // A poll that is open or showing its result owns the room: no quiz step
@@ -800,6 +844,134 @@ class Game {
   // offers a result that could not be saved once more.
   settlePoll() {
     this.poll.settlePending()
+  }
+
+  // ── Questions for the presenter (asks) ───────────────────────────────────
+
+  // The host page and the deck hear of the count and the box; the phones hear
+  // only of the box; the inbox hears of everything. No question's text or
+  // name goes to the room or the host here.
+  private onAsksChanged(change: AskChange) {
+    if (change.count) {
+      this.emitLectureState()
+    }
+
+    if (change.box && this.asks) {
+      this.io.to(this.gameId).emit(EVENTS.ASK.BOX, { open: this.asks.isOpen() })
+    }
+
+    askRoomSignal.changed(this)
+  }
+
+  // Any phone in a lecture room may send, in any phase: the phone hides its
+  // button while a question runs. The order of the checks is the contract's.
+  sendAsk(
+    socket: Socket,
+    message: { text: unknown; signed: unknown; nonce: unknown },
+  ): AskOutcome {
+    if (!this.asks) {
+      return "notLecture"
+    }
+
+    const player = this.playerManager.findById(socket.id)
+
+    if (!player) {
+      return "notPlayer"
+    }
+
+    return this.asks.send(
+      { clientId: player.clientId, username: player.username },
+      message,
+    )
+  }
+
+  // A phone that has just opened or come back asks whether it can send.
+  // Anyone who is not a player of a lecture room is told `null`.
+  syncAsks(socket: Socket) {
+    const player = this.playerManager.findById(socket.id)
+
+    socket.emit(
+      EVENTS.ASK.BOX,
+      this.asks && player ? { open: this.asks.isOpen() } : null,
+    )
+  }
+
+  // The game's manager (the presenter's deck frame or host page) opens or
+  // closes the box. The inbox has its own way in.
+  setAskBox(socket: Socket, open: unknown): AskBoxOutcome {
+    if (!this.asks) {
+      return "notLecture"
+    }
+
+    if (!this.isManager(socket)) {
+      return "notManager"
+    }
+
+    if (typeof open !== "boolean") {
+      return "invalid"
+    }
+
+    this.asks.setOpen(open)
+
+    return "accepted"
+  }
+
+  // Offers a record that could not be kept once more: at the room's close,
+  // and when the server shuts down.
+  settleAsks() {
+    this.asks?.settle()
+  }
+
+  // ── What the presenter's inbox may do (its handler checks the login) ─────
+
+  // The room as the inbox sees it, text included; a normal game has none.
+  // Only the inbox's watchers are ever sent this.
+  askView(): AskRoomView | null {
+    if (!this.asks) {
+      return null
+    }
+
+    return {
+      gameId: this.gameId,
+      inviteCode: this.inviteCode,
+      gameSubject: this.asks.gameSubject,
+      open: this.asks.isOpen(),
+      waiting: this.asks.waiting(),
+      saved: this.asks.isSaved(),
+      record: this.asks.getRecord(),
+    }
+  }
+
+  askRecordId(): string | null {
+    return this.asks?.recordId() ?? null
+  }
+
+  getAskRecord(): AskRecord | null {
+    return this.asks?.getRecord() ?? null
+  }
+
+  // The inbox's pause: any authorized watcher, not only the game's manager.
+  // `false` for a normal game.
+  setAskOpen(open: boolean): boolean {
+    if (!this.asks) {
+      return false
+    }
+
+    this.asks.setOpen(open)
+
+    return true
+  }
+
+  markAsk(askId: string, state: AskState): AskMarkOutcome {
+    return this.asks?.mark(askId, state) ?? "notFound"
+  }
+
+  markAllAsks() {
+    this.asks?.markAll()
+  }
+
+  removeAsk(askId: string): AskMarkOutcome {
+    return this.asks?.remove(askId) ?? "notFound"
   }
 }
 

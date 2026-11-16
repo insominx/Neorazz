@@ -1,0 +1,63 @@
+{
+  "button": "Fragen",
+  "title": "Frage stellen",
+  "close": "Schließen",
+  "placeholder": "Deine Frage",
+  "sign": "Meinen Namen hinzufügen",
+  "send": "Senden",
+  "sending": "Wird gesendet…",
+  "privacy": {
+    "private": "Nur die vortragende Person kann sie lesen. Ein Name steht nur dabei, wenn du ihn hinzufügst.",
+    "count": "Der Bildschirm zeigt eine Zahl, wenn eine Frage eintrifft.",
+    "kept": "Fragen werden aufbewahrt, damit die vortragende Person sie später lesen kann."
+  },
+  "outcome": {
+    "accepted": "Gesendet.",
+    "noAck": "Sie ist vielleicht nicht angekommen. Erneut senden ist sicher.",
+    "tooFast": "Warte ein paar Sekunden, bevor du die nächste sendest.",
+    "tooMany": "Du hast so viele Fragen gesendet, wie diese Sitzung erlaubt.",
+    "closed": "Die vortragende Person hat Fragen pausiert.",
+    "full": "Diese Sitzung nimmt keine Fragen mehr an.",
+    "invalid": "Eine Frage braucht 1 bis 500 Zeichen.",
+    "notPlayer": "Du bist nicht mehr in dieser Sitzung.",
+    "notLecture": "Diese Sitzung nimmt keine Fragen an."
+  },
+  "inbox": {
+    "title": "Fragen",
+    "live": "Live",
+    "reveal": "Fragen zeigen",
+    "hideQuestions": "Fragen verbergen",
+    "curtainNote": "Fragen bleiben verborgen, bis du sie zeigst, und verschwinden wieder, wenn du diese Seite verlässt.",
+    "waiting_one": "{{count}} neu",
+    "waiting_other": "{{count}} neu",
+    "total_one": "{{count}} Frage",
+    "total_other": "{{count}} Fragen",
+    "liveRoom": "Laufende Sitzung",
+    "pin": "PIN {{pin}}",
+    "paused": "pausiert",
+    "notSaved": "noch nicht gespeichert",
+    "pause": "Pausieren",
+    "resume": "Fortsetzen",
+    "gotIt": "Gelesen",
+    "gotAll": "Alle gelesen",
+    "answered": "Beantwortet",
+    "delete": "Löschen",
+    "state": {
+      "new": "Neu",
+      "seen": "Gelesen",
+      "answered": "Beantwortet"
+    },
+    "anonymous": "Ohne Namen",
+    "empty": "Noch keine Fragen.",
+    "nothing": "Noch keine Sitzungen oder Fragen.",
+    "open": "Zeigen",
+    "hide": "Ausblenden",
+    "deleteAskTitle": "Diese Frage löschen?",
+    "deleteAskBody": "Sie wird endgültig entfernt.",
+    "deleteRecord": "Verlauf löschen",
+    "deleteRecordTitle": "Diesen Verlauf löschen?",
+    "deleteRecordBody": "Alle seine Fragen werden endgültig entfernt.",
+    "failed": "Das hat nicht geklappt. Versuch es noch einmal.",
+    "framed": "Öffne diese Seite für sich, nicht in einer anderen Seite."
+  }
+}
