@@ -1,4 +1,6 @@
 import { EVENTS } from "@razzia/common/constants"
+import AskShell from "@razzia/web/features/ask/components/AskShell"
+import { useAskStore } from "@razzia/web/features/ask/stores/ask"
 import GameScreenBoundary from "@razzia/web/features/game/components/GameScreenBoundary"
 import GameWrapper from "@razzia/web/features/game/components/GameWrapper"
 import {
@@ -71,6 +73,8 @@ const PlayerGamePage = () => {
       setQuestionStates(currentQuestion)
       // A poll showing when this phone came back, or none.
       usePollStore.getState().apply(poll ?? null)
+      // The question box may have changed while it was away: ask again.
+      useAskStore.getState().noteReconnect()
     },
   )
 
@@ -85,6 +89,7 @@ const PlayerGamePage = () => {
     navigate({ to: "/", replace: true })
     reset()
     usePollStore.getState().reset()
+    useAskStore.getState().reset()
     setQuestionStates(null)
     toast.error(t(message), { id: message })
   })
@@ -98,24 +103,29 @@ const PlayerGamePage = () => {
       ? GAME_STATE_COMPONENTS[status.name]
       : null
 
+  // The question fold-out sits beside the poll's shell, never under its inert
+  // wrapper.
   return (
-    <PollShell role="player">
-      <GameWrapper
-        statusName={status?.name}
-        backgroundUrl={visuals.backgroundUrl}
-      >
-        {CurrentComponent && status && (
-          <GameScreenBoundary
-            resetKey={status}
-            onRecover={() =>
-              socket.emit(EVENTS.PLAYER.RECONNECT, { gameId: gameIdParam })
-            }
-          >
-            <CurrentComponent data={status.data as never} />
-          </GameScreenBoundary>
-        )}
-      </GameWrapper>
-    </PollShell>
+    <>
+      <PollShell role="player">
+        <GameWrapper
+          statusName={status?.name}
+          backgroundUrl={visuals.backgroundUrl}
+        >
+          {CurrentComponent && status && (
+            <GameScreenBoundary
+              resetKey={status}
+              onRecover={() =>
+                socket.emit(EVENTS.PLAYER.RECONNECT, { gameId: gameIdParam })
+              }
+            >
+              <CurrentComponent data={status.data as never} />
+            </GameScreenBoundary>
+          )}
+        </GameWrapper>
+      </PollShell>
+      <AskShell />
+    </>
   )
 }
 
@@ -127,6 +137,7 @@ export const Route = createFileRoute("/party/$gameId")({
     // player would send the join page to the name form for a game they left.
     usePlayerStore.getState().reset()
     usePollStore.getState().reset()
+    useAskStore.getState().reset()
     useQuestionStore.getState().setQuestionStates(null)
   },
 })

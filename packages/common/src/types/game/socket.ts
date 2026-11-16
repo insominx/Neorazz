@@ -1,5 +1,14 @@
 import { EVENTS } from "@razzia/common/constants"
 import type {
+  AskActionOutcome,
+  AskBox,
+  AskBoxOutcome,
+  AskLive,
+  AskOutcome,
+  AskRecordReply,
+  AskRoomView,
+} from "@razzia/common/types/ask"
+import type {
   GameResult,
   GameUpdateQuestion,
   LectureOutcome,
@@ -114,6 +123,14 @@ export interface ServerToClientEvents {
   // Poll events: null means no poll is showing.
   [EVENTS.POLL.STATE]: (_snapshot: PollSnapshot | null) => void
   [EVENTS.POLL.TALLY]: (_tally: PollTally) => void
+
+  // Whether this phone can send a question: null when it is not a player of a
+  // lecture room. Never anything else.
+  [EVENTS.ASK.BOX]: (_box: AskBox | null) => void
+
+  // The presenter's inbox, to watching sockets with a manager login only.
+  [EVENTS.ASKS.LIVE]: (_live: AskLive) => void
+  [EVENTS.ASKS.ROOM]: (_room: AskRoomView) => void
   [EVENTS.MANAGER.STATUS_UPDATE]: (_data: {
     status: Status
     data: StatusDataMap[Status]
@@ -183,6 +200,11 @@ export interface ClientToServerEvents {
     _message: MessageGameId & { pollId?: string },
     _ack: (_outcome: PollOutcome) => void,
   ) => void
+  // The game's manager only.
+  [EVENTS.MANAGER.SET_ASK_BOX]: (
+    _message: MessageGameId & { open: boolean },
+    _ack: (_outcome: AskBoxOutcome) => void,
+  ) => void
   [EVENTS.MANAGER.GET_CONFIG]: () => void
   [EVENTS.MANAGER.GLOBAL_BACKGROUND_SET]: (
     _request: {
@@ -249,6 +271,40 @@ export interface ClientToServerEvents {
     _ack: (_outcome: PollVoteOutcome) => void,
   ) => void
   [EVENTS.POLL.SYNC]: (_message: MessageGameId) => void
+  // `nonce` is the draft's: the same nonce sent again stores nothing.
+  [EVENTS.ASK.SEND]: (
+    _message: MessageGameId & { text: string; signed: boolean; nonce: string },
+    _ack: (_outcome: AskOutcome) => void,
+  ) => void
+  [EVENTS.ASK.SYNC]: (_message: MessageGameId) => void
+
+  // The presenter's inbox (a manager login).
+  [EVENTS.ASKS.WATCH]: () => void
+  [EVENTS.ASKS.UNWATCH]: () => void
+  [EVENTS.ASKS.MARK]: (
+    _message: { recordId: string; askId: string; state: "seen" | "answered" },
+    _ack: (_outcome: AskActionOutcome) => void,
+  ) => void
+  [EVENTS.ASKS.MARK_ALL]: (
+    _message: { recordId: string },
+    _ack: (_outcome: AskActionOutcome) => void,
+  ) => void
+  [EVENTS.ASKS.REMOVE]: (
+    _message: { recordId: string; askId: string },
+    _ack: (_outcome: AskActionOutcome) => void,
+  ) => void
+  [EVENTS.ASKS.SET_OPEN]: (
+    _message: { gameId: string; open: boolean },
+    _ack: (_outcome: AskActionOutcome) => void,
+  ) => void
+  [EVENTS.ASKS.RECORD_GET]: (
+    _message: { recordId: string },
+    _ack: (_reply: AskRecordReply) => void,
+  ) => void
+  [EVENTS.ASKS.RECORD_DELETE]: (
+    _message: { recordId: string },
+    _ack: (_outcome: AskActionOutcome) => void,
+  ) => void
 
   // Results actions
   [EVENTS.RESULTS.GET]: (_id: string) => void

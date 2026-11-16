@@ -3,6 +3,7 @@ import { STATUS, type Status } from "@razzia/common/types/game/status"
 import Atmosphere from "@razzia/web/components/Atmosphere"
 import Button from "@razzia/web/components/Button"
 import Loader from "@razzia/web/components/Loader"
+import AskButton from "@razzia/web/features/ask/components/AskButton"
 import LectureJoinHint from "@razzia/web/features/game/components/LectureJoinHint"
 import VolumeControl from "@razzia/web/features/game/components/VolumeControl"
 import {
@@ -261,11 +262,19 @@ const GameWrapper = ({
               {children}
             </LayoutGroup>
 
+            {/* The question button sits between the name and the points and is
+                always laid out, so the bar keeps one height on every screen;
+                a long name gives way rather than wrapping. */}
             {!manager && (
-              <div className="bg-panel/70 border-border text-text-body z-50 flex items-center justify-between border-t px-4 py-2 text-lg font-bold">
-                <p className="text-text-muted">{player?.username}</p>
-                <div className="bg-panel border-border text-text-primary rounded-rz-md border px-3 py-1 font-mono text-lg">
-                  {player?.points}
+              <div className="bg-panel/70 border-border text-text-body z-50 flex items-center justify-between gap-3 border-t px-4 py-2 text-lg font-bold">
+                <p className="text-text-muted min-w-0 flex-1 truncate">
+                  {player?.username}
+                </p>
+                <AskButton />
+                <div className="flex flex-1 justify-end">
+                  <div className="bg-panel border-border text-text-primary rounded-rz-md border px-3 py-1 font-mono text-lg">
+                    {player?.points}
+                  </div>
                 </div>
               </div>
             )}

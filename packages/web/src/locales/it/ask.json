@@ -1,0 +1,63 @@
+{
+  "button": "Chiedi",
+  "title": "Fai una domanda",
+  "close": "Chiudi",
+  "placeholder": "Scrivi la tua domanda",
+  "sign": "Aggiungi il mio nome",
+  "send": "Invia",
+  "sending": "Invio…",
+  "privacy": {
+    "private": "Solo chi presenta può leggerla. Nessun nome è allegato, a meno che tu non lo aggiunga.",
+    "count": "Lo schermo mostra un numero quando arriva una domanda.",
+    "kept": "Le domande vengono conservate perché chi presenta possa leggerle più tardi."
+  },
+  "outcome": {
+    "accepted": "Inviata.",
+    "noAck": "Potrebbe non essere arrivata. Inviarla di nuovo è sicuro.",
+    "tooFast": "Aspetta qualche secondo prima di inviarne un'altra.",
+    "tooMany": "Hai inviato tutte le domande che questa sessione consente.",
+    "closed": "Chi presenta ha messo in pausa le domande.",
+    "full": "Questa sessione non accetta altre domande.",
+    "invalid": "Una domanda deve avere da 1 a 500 caratteri.",
+    "notPlayer": "Non sei più in questa sessione.",
+    "notLecture": "Questa sessione non accetta domande."
+  },
+  "inbox": {
+    "title": "Domande",
+    "live": "In diretta",
+    "reveal": "Mostra le domande",
+    "hideQuestions": "Nascondi le domande",
+    "curtainNote": "Le domande restano nascoste finché non le mostri, e si nascondono di nuovo quando lasci questa pagina.",
+    "waiting_one": "{{count}} nuova",
+    "waiting_other": "{{count}} nuove",
+    "total_one": "{{count}} domanda",
+    "total_other": "{{count}} domande",
+    "liveRoom": "Sessione aperta",
+    "pin": "PIN {{pin}}",
+    "paused": "in pausa",
+    "notSaved": "non ancora salvato",
+    "pause": "Pausa",
+    "resume": "Riprendi",
+    "gotIt": "Letta",
+    "gotAll": "Tutte lette",
+    "answered": "Risposta",
+    "delete": "Elimina",
+    "state": {
+      "new": "Nuova",
+      "seen": "Letta",
+      "answered": "Risposta"
+    },
+    "anonymous": "Senza nome",
+    "empty": "Ancora nessuna domanda.",
+    "nothing": "Ancora nessuna sessione o domanda.",
+    "open": "Mostra",
+    "hide": "Nascondi",
+    "deleteAskTitle": "Eliminare questa domanda?",
+    "deleteAskBody": "Viene eliminata per sempre.",
+    "deleteRecord": "Elimina registro",
+    "deleteRecordTitle": "Eliminare questo registro?",
+    "deleteRecordBody": "Tutte le sue domande vengono eliminate per sempre.",
+    "failed": "Non è andato a buon fine. Riprova.",
+    "framed": "Apri questa pagina da sola, non dentro un'altra pagina."
+  }
+}

@@ -1,7 +1,9 @@
 import type { LectureState } from "@razzia/common/types/game"
+import { capWaiting } from "@razzia/common/validators/ask"
 import { STATUS, type Status } from "@razzia/common/types/game/status"
 import type { PollSnapshot } from "@razzia/common/types/poll"
 import {
+  type BridgeAsks,
   type BridgePoll,
   type BridgeState,
   FEATURES,
@@ -134,6 +136,15 @@ const bridgePollOf = (snapshot: PollSnapshot): BridgePoll => {
   }
 }
 
+// What a deck may be told of the room's question box: the two numbers, built
+// field by field, so nothing else the lecture state may carry rides along. A
+// lecture room whose box has not changed yet sends no `asks`: none waiting,
+// open.
+const bridgeAsksOf = (lecture: LectureState): BridgeAsks => ({
+  waiting: capWaiting(lecture.asks?.waiting ?? 0),
+  open: lecture.asks?.open ?? true,
+})
+
 interface ScreenData {
   inviteCode?: string
   questionNumber?: number
@@ -204,5 +215,7 @@ export const buildBridgeState = ({
         }))
       : [],
     sound: { muted: sound.muted, volume: sound.volume },
+    // Gated like gameId: the box of the lecture room this page is attached to.
+    asks: attached && lecture ? bridgeAsksOf(lecture) : null,
   }
 }

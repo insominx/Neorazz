@@ -1,0 +1,63 @@
+{
+  "button": "Preguntar",
+  "title": "Hacer una pregunta",
+  "close": "Cerrar",
+  "placeholder": "Escribe tu pregunta",
+  "sign": "Añadir mi nombre",
+  "send": "Enviar",
+  "sending": "Enviando…",
+  "privacy": {
+    "private": "Solo quien presenta puede leerla. No lleva nombre a menos que añadas el tuyo.",
+    "count": "La pantalla muestra un número cuando llega una pregunta.",
+    "kept": "Las preguntas se guardan para que quien presenta pueda leerlas más tarde."
+  },
+  "outcome": {
+    "accepted": "Enviada.",
+    "noAck": "Puede que no haya llegado. Volver a enviarla es seguro.",
+    "tooFast": "Espera unos segundos antes de enviar otra.",
+    "tooMany": "Has enviado todas las preguntas que permite esta sesión.",
+    "closed": "Quien presenta ha pausado las preguntas.",
+    "full": "Esta sesión no admite más preguntas.",
+    "invalid": "Una pregunta necesita de 1 a 500 caracteres.",
+    "notPlayer": "Ya no estás en esta sesión.",
+    "notLecture": "Esta sesión no admite preguntas."
+  },
+  "inbox": {
+    "title": "Preguntas",
+    "live": "En directo",
+    "reveal": "Mostrar preguntas",
+    "hideQuestions": "Ocultar preguntas",
+    "curtainNote": "Las preguntas quedan ocultas hasta que las muestres, y se ocultan de nuevo al salir de esta página.",
+    "waiting_one": "{{count}} nueva",
+    "waiting_other": "{{count}} nuevas",
+    "total_one": "{{count}} pregunta",
+    "total_other": "{{count}} preguntas",
+    "liveRoom": "Sesión abierta",
+    "pin": "PIN {{pin}}",
+    "paused": "en pausa",
+    "notSaved": "aún sin guardar",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "gotIt": "Vista",
+    "gotAll": "Todas vistas",
+    "answered": "Respondida",
+    "delete": "Eliminar",
+    "state": {
+      "new": "Nueva",
+      "seen": "Vista",
+      "answered": "Respondida"
+    },
+    "anonymous": "Sin nombre",
+    "empty": "Aún no hay preguntas.",
+    "nothing": "Aún no hay sesiones ni preguntas.",
+    "open": "Mostrar",
+    "hide": "Ocultar",
+    "deleteAskTitle": "¿Eliminar esta pregunta?",
+    "deleteAskBody": "Se elimina para siempre.",
+    "deleteRecord": "Eliminar registro",
+    "deleteRecordTitle": "¿Eliminar este registro?",
+    "deleteRecordBody": "Todas sus preguntas se eliminan para siempre.",
+    "failed": "No se pudo hacer. Inténtalo de nuevo.",
+    "framed": "Abre esta página sola, no dentro de otra página."
+  }
+}

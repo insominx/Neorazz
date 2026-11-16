@@ -204,6 +204,7 @@ describe("useDeckBridge and polls", () => {
         "pollReview",
         "sound",
         "pollAfterPodium",
+        "asks",
       ],
       poll: null,
       pollsDone: [],

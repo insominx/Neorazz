@@ -56,6 +56,9 @@ export const EVENTS = {
     START_POLL: "manager:startPoll",
     CLOSE_POLL: "manager:closePoll",
     DISMISS_POLL: "manager:dismissPoll",
+    // The game's manager (the presenter's deck frame or host page) opens or
+    // closes the room's question box.
+    SET_ASK_BOX: "manager:setAskBox",
   },
   // A poll runs beside the quiz, not as one of its screens: its own state
   // travels on these events and never on `game:status`.
@@ -65,6 +68,28 @@ export const EVENTS = {
     VOTE: "poll:vote",
     // A screen that has just opened asks for the poll as it stands.
     SYNC: "poll:sync",
+  },
+  // A question for the presenter alone. Its text never travels on these to
+  // anyone but the sender's own ack; the room learns only the box's state.
+  ASK: {
+    SEND: "ask:send",
+    // A phone that has just opened or come back asks whether it can send.
+    SYNC: "ask:sync",
+    BOX: "ask:box",
+  },
+  // The presenter's inbox: questions' text and names travel only on these,
+  // and only to sockets with a manager login that asked to watch.
+  ASKS: {
+    WATCH: "asks:watch",
+    UNWATCH: "asks:unwatch",
+    LIVE: "asks:live",
+    ROOM: "asks:room",
+    MARK: "asks:mark",
+    MARK_ALL: "asks:markAll",
+    REMOVE: "asks:remove",
+    SET_OPEN: "asks:setOpen",
+    RECORD_GET: "asks:recordGet",
+    RECORD_DELETE: "asks:recordDelete",
   },
   QUIZZ: {
     GET: "quizz:get",

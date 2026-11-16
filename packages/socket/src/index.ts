@@ -1,4 +1,5 @@
 import type { Server } from "@razzia/common/types/game/socket"
+import { asksSocketHandlers } from "@razzia/socket/handlers/asks"
 import { gameSocketHandlers } from "@razzia/socket/handlers/game"
 import { guardHandlers } from "@razzia/socket/handlers/guard"
 import { managerSocketHandlers } from "@razzia/socket/handlers/manager"
@@ -94,6 +95,7 @@ const socketHandlers: SocketHandler[] = [
   pollsSocketHandlers,
   gameSocketHandlers,
   resultsSocketHandlers,
+  asksSocketHandlers,
 ]
 
 io.on("connection", (socket) => {
@@ -105,14 +107,16 @@ io.on("connection", (socket) => {
   })
 })
 
-// A redeploy mid-lecture still keeps the questions a lecture game played, and
-// a poll that was open.
+// A redeploy mid-lecture still keeps the questions a lecture game played, a
+// poll that was open, and the room's questions for the presenter whose last
+// write failed.
 const shutdown = () => {
   const registry = Registry.getInstance()
 
   registry.getAllGames().forEach((game) => {
     game.saveUnfinishedLecture()
     game.settlePoll()
+    game.settleAsks()
   })
   registry.cleanup()
   process.exit(0)

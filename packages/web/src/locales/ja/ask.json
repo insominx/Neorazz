@@ -1,0 +1,61 @@
+{
+  "button": "質問",
+  "title": "質問する",
+  "close": "閉じる",
+  "placeholder": "質問を入力",
+  "sign": "名前を添える",
+  "send": "送信",
+  "sending": "送信中…",
+  "privacy": {
+    "private": "読めるのは発表者だけです。名前を添えない限り、名前は付きません。",
+    "count": "質問が届くと、画面に件数が表示されます。",
+    "kept": "質問は保存され、発表者があとで読めます。"
+  },
+  "outcome": {
+    "accepted": "送信しました。",
+    "noAck": "届いていないかもしれません。もう一度送っても重複しません。",
+    "tooFast": "数秒待ってから次を送ってください。",
+    "tooMany": "このセッションで送れる質問の上限に達しました。",
+    "closed": "発表者が質問の受付を一時停止しています。",
+    "full": "このセッションはこれ以上質問を受け付けられません。",
+    "invalid": "質問は1〜500文字で入力してください。",
+    "notPlayer": "このセッションから外れています。",
+    "notLecture": "このセッションでは質問を受け付けていません。"
+  },
+  "inbox": {
+    "title": "質問",
+    "live": "接続中",
+    "reveal": "質問を表示",
+    "hideQuestions": "質問を隠す",
+    "curtainNote": "質問は表示するまで隠れていて、このページを離れるとまた隠れます。",
+    "waiting_other": "新着 {{count}}",
+    "total_other": "{{count}} 件",
+    "liveRoom": "進行中のセッション",
+    "pin": "PIN {{pin}}",
+    "paused": "一時停止中",
+    "notSaved": "未保存",
+    "pause": "一時停止",
+    "resume": "再開",
+    "gotIt": "確認済み",
+    "gotAll": "すべて確認済み",
+    "answered": "回答済み",
+    "delete": "削除",
+    "state": {
+      "new": "新着",
+      "seen": "確認済み",
+      "answered": "回答済み"
+    },
+    "anonymous": "名前なし",
+    "empty": "まだ質問はありません。",
+    "nothing": "まだセッションも質問もありません。",
+    "open": "表示",
+    "hide": "隠す",
+    "deleteAskTitle": "この質問を削除しますか？",
+    "deleteAskBody": "完全に削除されます。",
+    "deleteRecord": "記録を削除",
+    "deleteRecordTitle": "この記録を削除しますか？",
+    "deleteRecordBody": "記録内の質問はすべて完全に削除されます。",
+    "failed": "うまくいきませんでした。もう一度お試しください。",
+    "framed": "このページは単独で開いてください。"
+  }
+}

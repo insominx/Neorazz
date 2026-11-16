@@ -101,6 +101,15 @@ class Manager {
     return this.isLoggedByClientId(getClientId(socket))
   }
 
+  // Asks without refreshing or forgetting anything: a page that only watches
+  // (the question inbox) is checked before every message it is sent, and that
+  // must not keep an idle login alive.
+  peek(clientId: string) {
+    const lastSeen = this.loggedClients.get(clientId)
+
+    return lastSeen !== undefined && Date.now() - lastSeen < LOGIN_IDLE_MS
+  }
+
   login(socket: Socket) {
     const now = Date.now()
 

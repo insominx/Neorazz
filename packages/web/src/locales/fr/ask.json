@@ -1,0 +1,63 @@
+{
+  "button": "Demander",
+  "title": "Poser une question",
+  "close": "Fermer",
+  "placeholder": "Écrivez votre question",
+  "sign": "Ajouter mon nom",
+  "send": "Envoyer",
+  "sending": "Envoi…",
+  "privacy": {
+    "private": "Seule la personne qui présente peut la lire. Aucun nom n'est joint, sauf si vous l'ajoutez.",
+    "count": "L'écran affiche un nombre quand une question arrive.",
+    "kept": "Les questions sont conservées pour que la personne qui présente puisse les lire plus tard."
+  },
+  "outcome": {
+    "accepted": "Envoyée.",
+    "noAck": "Elle n'est peut-être pas arrivée. La renvoyer est sans risque.",
+    "tooFast": "Attendez quelques secondes avant d'en envoyer une autre.",
+    "tooMany": "Vous avez envoyé autant de questions que cette session le permet.",
+    "closed": "La personne qui présente a mis les questions en pause.",
+    "full": "Cette session n'accepte plus de questions.",
+    "invalid": "Une question doit faire de 1 à 500 caractères.",
+    "notPlayer": "Vous n'êtes plus dans cette session.",
+    "notLecture": "Cette session n'accepte pas de questions."
+  },
+  "inbox": {
+    "title": "Questions",
+    "live": "En direct",
+    "reveal": "Afficher les questions",
+    "hideQuestions": "Masquer les questions",
+    "curtainNote": "Les questions restent masquées jusqu'à ce que vous les affichiez, et se masquent à nouveau quand vous quittez cette page.",
+    "waiting_one": "{{count}} nouvelle",
+    "waiting_other": "{{count}} nouvelles",
+    "total_one": "{{count}} question",
+    "total_other": "{{count}} questions",
+    "liveRoom": "Session ouverte",
+    "pin": "PIN {{pin}}",
+    "paused": "en pause",
+    "notSaved": "pas encore enregistré",
+    "pause": "Mettre en pause",
+    "resume": "Reprendre",
+    "gotIt": "Lue",
+    "gotAll": "Toutes lues",
+    "answered": "Répondue",
+    "delete": "Supprimer",
+    "state": {
+      "new": "Nouvelle",
+      "seen": "Lue",
+      "answered": "Répondue"
+    },
+    "anonymous": "Sans nom",
+    "empty": "Pas encore de questions.",
+    "nothing": "Pas encore de sessions ni de questions.",
+    "open": "Afficher",
+    "hide": "Masquer",
+    "deleteAskTitle": "Supprimer cette question ?",
+    "deleteAskBody": "Elle est supprimée définitivement.",
+    "deleteRecord": "Supprimer l'historique",
+    "deleteRecordTitle": "Supprimer cet historique ?",
+    "deleteRecordBody": "Toutes ses questions sont supprimées définitivement.",
+    "failed": "Cela n'a pas abouti. Réessayez.",
+    "framed": "Ouvrez cette page seule, pas dans une autre page."
+  }
+}
