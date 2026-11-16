@@ -423,26 +423,55 @@ describe("the podium", () => {
 
   it("plays third, second, a roll and first on the plan's schedule", () => {
     const list = events(podium(3), FULL, [0, 30])
-    const impactTimes = of(list, "impact").map((event) => event.t)
 
-    expect(impactTimes).toEqual([
+    expect(of(list, "timpani").map((event) => event.t)).toEqual([
       PODIUM_T.third,
       PODIUM_T.second,
       PODIUM_T.first,
     ])
-    expect(of(list, "roll").map((event) => event.t)).toEqual([PODIUM_T.roll])
-    expect(of(list, "roll")[0].p).toMatchObject({
+    expect(of(list, "riser").map((event) => event.t)).toEqual([PODIUM_T.roll])
+    expect(of(list, "riser")[0].p).toMatchObject({
       dur: PODIUM_T.first - PODIUM_T.roll,
     })
+    expect(of(list, "impact").map((event) => event.t)).toEqual([PODIUM_T.first])
   })
 
   it("skips empty places and moves the rest earlier", () => {
     const two = events(podium(2), FULL, [0, 30])
     const one = events(podium(1), FULL, [0, 30])
 
-    expect(of(two, "impact").map((event) => event.t)).toEqual([1, 6.5])
-    expect(of(one, "roll").map((event) => event.t)).toEqual([0])
-    expect(of(one, "impact").map((event) => event.t)).toEqual([4])
+    expect(of(two, "timpani").map((event) => event.t)).toEqual([1, 6.5])
+    expect(of(one, "riser").map((event) => event.t)).toEqual([0])
+    expect(of(one, "timpani").map((event) => event.t)).toEqual([4])
+  })
+
+  it("swells strings under the roll and climbs a scale into first place", () => {
+    const list = events(podium(3), FULL, [0, 30])
+    const swell = of(list, "strings").find((e) => e.t === PODIUM_T.roll)
+    const scale = of(list, "pluck")
+      .map((event) => event.t)
+      .filter((t) => t < PODIUM_T.first)
+
+    expect(swell).toBeDefined()
+    expect(scale).toHaveLength(8)
+    expect(Math.min(...scale)).toBe(PODIUM_T.first - 1)
+    expect(Math.max(...scale)).toBeLessThan(PODIUM_T.first)
+  })
+
+  it("crowns first place with brass, a choir and a cheering room", () => {
+    const list = events(podium(3), FULL, [0, 30])
+
+    expect(of(list, "chord")).toEqual([])
+    expect(of(list, "brass").map((event) => event.t)).toEqual([PODIUM_T.first])
+    expect(of(list, "choir").map((event) => event.t)).toEqual([PODIUM_T.first])
+    expect(of(list, "crowd")).toHaveLength(1)
+  })
+
+  it("keeps the music but drops the crowd in calm", () => {
+    const list = events(podium(3), CALM, [0, 30])
+
+    expect(of(list, "crowd")).toEqual([])
+    expect(of(list, "brass")).toHaveLength(1)
   })
 
   it("is two scenes: its hits on the show lane and its groove on the bed", () => {
@@ -455,11 +484,11 @@ describe("the podium", () => {
     ])
   })
 
-  it("starts the finale groove on a bar line after first place", () => {
+  it("starts the finale groove on a bar line after the finale", () => {
     const [, finale] = compileScene(podium(3), FULL)
     const kicks = of(finale.events(0, 40), "kick").map((event) => event.t)
 
-    expect(Math.min(...kicks)).toBe(10)
+    expect(Math.min(...kicks)).toBe(14)
     expect(Math.min(...kicks) % 2).toBe(0)
   })
 })

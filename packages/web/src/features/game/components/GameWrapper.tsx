@@ -21,6 +21,7 @@ import {
 } from "@razzia/web/features/game/stores/mood"
 import { usePlayerStore } from "@razzia/web/features/game/stores/player"
 import { useQuestionStore } from "@razzia/web/features/game/stores/question"
+import { useStageLightStore } from "@razzia/web/features/game/stores/stage-light"
 import {
   score,
   useScoreConfig,
@@ -82,6 +83,9 @@ const GameWrapper = ({
   const { t } = useTranslation()
   const { isConnected } = useSocket()
   const moodOverride = useMoodStore((state) => state.override)
+  const floor = useStageLightStore((state) => state.floor)
+  const flares = useStageLightStore((state) => state.flares)
+  const focus = useStageLightStore((state) => state.focus)
   const calm = useCalmVisuals()
   const [isDisabled, setIsDisabled] = useState(false)
   const next = statusName ? MANAGER_SKIP_BTN[statusName] : null
@@ -200,6 +204,9 @@ const GameWrapper = ({
         backgroundUrl={backgroundUrl}
         mood={moodOverride ?? moodForStatus(statusName)}
         calm={calm}
+        floor={floor}
+        flares={flares}
+        focus={focus}
       />
 
       <div className="z-10 flex min-h-0 w-full flex-1 flex-col justify-between">

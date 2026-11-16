@@ -15,6 +15,12 @@ vi.mock("@razzia/web/features/game/stores/sound", () => ({
   useSoundStore: (selector: (s: typeof state) => unknown) => selector(state),
 }))
 
+const { playPreviewTone } = vi.hoisted(() => ({ playPreviewTone: vi.fn() }))
+
+vi.mock("@razzia/web/features/game/audio/preview-tone", () => ({
+  playPreviewTone,
+}))
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }))
@@ -174,6 +180,7 @@ describe("VolumeControl", () => {
     fireEvent.change(slider(), { target: { value: "0.35" } })
 
     expect(state.setVolume).toHaveBeenCalledWith(0.35)
+    expect(playPreviewTone).toHaveBeenCalledOnce()
   })
 
   it("shows the slider at zero and offers unmute while muted", () => {

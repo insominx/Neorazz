@@ -11,6 +11,8 @@ import {
   playersFor,
   statusFor,
 } from "@razzia/web/features/dev/fixtures"
+import DevPollRun from "@razzia/web/features/dev/DevPollRun"
+import { useLaunchStore } from "@razzia/web/features/game/stores/launch"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
 import { usePlayerStore } from "@razzia/web/features/game/stores/player"
 import { useQuestionStore } from "@razzia/web/features/game/stores/question"
@@ -43,6 +45,13 @@ const progressOf = (ref: FixtureRef) => ({
   total: findQuiz(ref.quizId)?.quiz.questions.length ?? 1,
 })
 
+/** The first card after a countdown says GO; the countdown arms it. */
+const armLaunch = (ref: FixtureRef) => {
+  if (ref.fixture === "prepared-go") {
+    useLaunchStore.getState().arm()
+  }
+}
+
 /** A phone on the locked-in screen has already tapped a tile. */
 const seedPick = (ref: FixtureRef) => {
   const pick = pickFor(ref)
@@ -66,9 +75,19 @@ const Frame = ({
   intensity = "full",
 }: Props) => {
   const fake = useMemo(() => createFakeSocket(), [])
-  const [shown, setShown] = useState<{ status: GameStatus; mount: number }>(
-    () => ({ status: statusFor(initial), mount: 0 }),
-  )
+  const [shown, setShown] = useState<{
+    status: GameStatus
+    mount: number
+    poll: boolean
+  }>(() => {
+    armLaunch(initial)
+
+    return {
+      status: statusFor(initial),
+      mount: 0,
+      poll: initial.fixture === "poll-arrivals",
+    }
+  })
   const [seed] = useState<FrameSeed>(() => ({
     progress: progressOf(initial),
     pick: pickFor(initial),
@@ -81,17 +100,17 @@ const Frame = ({
         useQuestionStore.getState().setQuestionStates(progressOf(ref))
         useManagerStore.getState().setPlayers(playersFor(ref.fixture))
         seedPick(ref)
+        armLaunch(ref)
         flushSync(() =>
           setShown((previous) => ({
             status: statusFor(ref),
             mount: previous.mount + 1,
+            poll: ref.fixture === "poll-arrivals",
           })),
         )
       },
       showStatus: (status) => {
-        flushSync(() =>
-          setShown((previous) => ({ status, mount: previous.mount })),
-        )
+        flushSync(() => setShown((previous) => ({ ...previous, status })))
       },
       deliver: (event, ...args) => {
         flushSync(() => fake.deliver(event, ...args))
@@ -130,6 +149,9 @@ const Frame = ({
       mount={shown.mount}
       fake={fake}
       seed={seed}
+      overlay={
+        shown.poll && view === "host" ? <DevPollRun key={shown.mount} /> : null
+      }
     />
   )
 }

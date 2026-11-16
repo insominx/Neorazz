@@ -85,7 +85,7 @@ describe("the mixing graph", () => {
 })
 
 describe("the voices", () => {
-  it("are the prototype's set, plus the spotlight's swell", () => {
+  it("are the prototype's set, plus the spotlight's swell and the podium's voices", () => {
     expect(Object.keys(INSTRUMENTS).sort()).toEqual(
       [
         "kick",
@@ -103,6 +103,11 @@ describe("the voices", () => {
         "tick",
         "roll",
         "chord",
+        "brass",
+        "timpani",
+        "strings",
+        "choir",
+        "crowd",
         "crash",
         "swell",
       ].sort(),
@@ -126,6 +131,11 @@ describe("the voices", () => {
       { t: 0, inst: "tick", p: { m: 81 } },
       { t: 0, inst: "roll", p: { dur: 1 } },
       { t: 0, inst: "chord", p: { notes: [60, 64] } },
+      { t: 0, inst: "brass", p: { notes: [60, 64], dur: 0.5 } },
+      { t: 0, inst: "timpani", p: { m: 36 } },
+      { t: 0, inst: "strings", p: { notes: [60, 64], dur: 1 } },
+      { t: 0, inst: "choir", p: { notes: [60, 64], dur: 1 } },
+      { t: 0, inst: "crowd", p: { dur: 1 } },
       { t: 0, inst: "crash", p: {} },
       { t: 0, inst: "swell", p: { notes: [33, 45] } },
     ] as const

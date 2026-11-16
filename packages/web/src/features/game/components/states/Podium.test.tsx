@@ -1,10 +1,11 @@
 import type { PublicPlayer } from "@razzia/common/types/game"
 import Podium from "@razzia/web/features/game/components/states/Podium"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
+import { useStageLightStore } from "@razzia/web/features/game/stores/stage-light"
 import {
   CONFETTI_MS,
   podiumTimes,
-  WINNER_FLOOD_MS,
+  WINNER_MOMENT_MS,
 } from "@razzia/web/features/game/utils/board"
 import { act, cleanup, render } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -99,16 +100,48 @@ describe("Podium", () => {
     expect(container.querySelector("[data-podium-envelope]")).toBeNull()
   })
 
-  it("fills the frame with the winner's name, then clears it", () => {
+  it("turns the beams in for the roll and keeps them on the winner", () => {
+    render(<Podium data={{ subject: "Git", top: TOP }} />)
+    const times = podiumTimes(3)
+
+    expect(useStageLightStore.getState().focus).toBe(false)
+
+    advance(times.roll + 0.1)
+    expect(useStageLightStore.getState().focus).toBe(true)
+
+    advance(times.first - times.roll)
+    expect(useStageLightStore.getState().focus).toBe(true)
+
+    advance(WINNER_MOMENT_MS / 1_000)
+    expect(useStageLightStore.getState().focus).toBe(false)
+  })
+
+  it("lands the winner's name in gold light over the podium, then lets it rise away", () => {
     const { container } = render(<Podium data={{ subject: "Git", top: TOP }} />)
+    const name = () => container.querySelector("[data-podium-winner]")
 
     advance(podiumTimes(3).first)
-    expect(container.querySelector("[data-podium-winner]")?.textContent).toBe(
-      "ada",
+    expect(name()?.textContent).toBe("ada")
+    expect(container.querySelector("[data-moment]")).toHaveAttribute(
+      "data-tone",
+      "gold",
     )
+    // Light, not paint: no fill over the frame, gold from the floor, and a
+    // ring of it leaving first place.
+    expect(container.querySelector("[data-hit]")).toBeNull()
+    expect(useStageLightStore.getState().floor).toEqual({
+      tone: "gold",
+      level: 1,
+    })
+    expect(useStageLightStore.getState().flares).toMatchObject([
+      { tone: "gold", rings: 2 },
+    ])
 
-    advance(WINNER_FLOOD_MS / 1_000)
-    expect(container.querySelector("[data-podium-winner]")).toBeNull()
+    advance(WINNER_MOMENT_MS / 1_000)
+    expect(container.querySelector("[data-moment]")).toHaveAttribute(
+      "data-leaving",
+    )
+    expect(useStageLightStore.getState().floor?.tone).toBe("gold")
   })
 
   it("throws confetti once, then stops", () => {
@@ -124,7 +157,7 @@ describe("Podium", () => {
     expect(container.querySelector("[data-confetti]")).toBeNull()
   })
 
-  it("keeps the flood and the confetti out of a calm show", () => {
+  it("keeps the confetti out of a calm show, but still names the winner", () => {
     useManagerStore.getState().setVisuals({ showIntensity: "calm" })
 
     const { container } = render(<Podium data={{ subject: "Git", top: TOP }} />)
@@ -132,7 +165,9 @@ describe("Podium", () => {
     advance(podiumTimes(3).first + 0.5)
 
     expect(risen(container)).toEqual(["1", "2", "3"])
-    expect(container.querySelector("[data-podium-winner]")).toBeNull()
+    expect(container.querySelector("[data-moment]")).toHaveAttribute(
+      "data-calm",
+    )
     expect(container.querySelector("[data-confetti]")).toBeNull()
   })
 

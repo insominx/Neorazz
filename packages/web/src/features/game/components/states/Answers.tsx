@@ -14,9 +14,11 @@ import {
   useEvent,
   useSocket,
 } from "@razzia/web/features/game/contexts/socket-context"
+import { useAnswerHeartbeat } from "@razzia/web/features/game/hooks/use-answer-heartbeat"
 import { useAnswerReveal } from "@razzia/web/features/game/hooks/use-answer-reveal"
 import { useSceneArrival } from "@razzia/web/features/game/hooks/use-scene-arrival"
 import { useSecondsUntil } from "@razzia/web/features/game/hooks/use-seconds-until"
+import { useCalmVisuals } from "@razzia/web/features/game/hooks/use-show-intensity"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
 import { useMoodOverride } from "@razzia/web/features/game/stores/mood"
 import { usePlayerStore } from "@razzia/web/features/game/stores/player"
@@ -108,6 +110,18 @@ const Answers = ({ data }: Props) => {
 
   // Only a phone has a seat; the projector shows the same tiles, untappable.
   const interactive = Boolean(player && gameId)
+  const calm = useCalmVisuals()
+
+  // The projector's heartbeat while the room answers (task 0012): it quickens
+  // with the clock and hands over to the last five seconds' ticks.
+  useAnswerHeartbeat(
+    !interactive &&
+      !reviewing &&
+      answeringOpen &&
+      timed &&
+      cooldown > FINAL_COUNTDOWN_SECONDS,
+    timed ? (time - cooldown) / time : 0,
+  )
 
   const handleAnswer = (answerKey: number) => () => {
     if (!answeringOpen || !player || !gameId || pickedKey !== null) {
@@ -239,6 +253,7 @@ const Answers = ({ data }: Props) => {
             className="stage:col-start-3 stage:justify-self-end ml-auto items-end"
             label={t("game:hud.responses")}
             value={`${totalAnswer}/${totalPlayer}`}
+            flash={calm ? 0 : totalAnswer}
           />
 
           {/* The tap is acknowledged on the spot, in the gap between the clock

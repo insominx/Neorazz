@@ -1,11 +1,14 @@
 import { EVENTS } from "@razzia/common/constants"
 import type { PlayerStatusDataMap } from "@razzia/common/types/game/status"
-import Loader from "@razzia/web/components/Loader"
 import AnswerTile from "@razzia/web/features/game/components/AnswerTile"
-import { useEvent } from "@razzia/web/features/game/contexts/socket-context"
+import {
+  useEvent,
+  useSocket,
+} from "@razzia/web/features/game/contexts/socket-context"
 import { usePlayerStore } from "@razzia/web/features/game/stores/player"
 import { useQuestionStore } from "@razzia/web/features/game/stores/question"
 import { answerVars } from "@razzia/web/features/game/utils/type-tier"
+import clsx from "clsx"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -19,10 +22,16 @@ const WAITING_FOR_PLAYERS = "game:waitingForPlayers"
 /**
  * A phone that has locked in an answer: its own pick, held, and how many of the
  * room are in. Tapping the held tile nudges it ("yes, it is locked"). Any other
- * wait (the lobby, a lecture hold) is just the spinner and its line.
+ * wait (the lobby, a lecture hold) says the phone is connected and that the
+ * next thing will come to it. Nothing on it moves.
+ *
+ * The lobby's text is "Waiting for players", which is the host's view; the
+ * phone in a seat is waiting for the host, so it says that instead.
  */
 const Wait = ({ data: { text, answered, total } }: Props) => {
   const { t } = useTranslation()
+  const { isConnected } = useSocket()
+  const lobby = text === WAITING_FOR_PLAYERS
   const lastAnswer = usePlayerStore((state) => state.lastAnswer)
   const player = usePlayerStore((state) => state.player)
   const here = usePlayerStore((state) => state.playersHere) ?? undefined
@@ -82,11 +91,10 @@ const Wait = ({ data: { text, answered, total } }: Props) => {
               })}
             </p>
           )}
-          <Loader className="h-10" />
         </div>
       ) : (
         <>
-          {text === WAITING_FOR_PLAYERS && player && (
+          {lobby && player && (
             <p
               data-youre-in
               className="text-brand mb-6 text-center text-4xl font-extrabold"
@@ -94,11 +102,38 @@ const Wait = ({ data: { text, answered, total } }: Props) => {
               {t("game:youreIn", { name: player.username })}
             </p>
           )}
-          <Loader className="h-30" />
-          <h2 className="text-text-primary mt-5 text-center text-3xl font-bold">
-            {t(text)}
+          {/* Still on purpose: a phone in the audience sits on this screen for
+              minutes, and anything that moves pulls eyes off the room. */}
+          <p
+            data-connection
+            className={clsx(
+              "flex items-center gap-2 rounded-full border px-4 py-1.5 text-base font-bold",
+              isConnected
+                ? "bg-success-tint border-success-border text-success"
+                : "bg-warning-tint border-warning-border text-warning",
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={clsx(
+                "size-2.5 rounded-full",
+                isConnected ? "bg-success" : "bg-warning",
+              )}
+            />
+            {isConnected ? t("game:connectedBadge") : t("common:reconnecting")}
+          </p>
+          <h2 className="text-text-primary mt-6 text-center text-3xl font-bold">
+            {t(lobby ? "game:waitingForHost" : text)}
           </h2>
-          {text === WAITING_FOR_PLAYERS && here !== undefined && (
+          {lobby && (
+            <p
+              data-wait-hint
+              className="text-text-muted mt-3 max-w-md text-center text-lg"
+            >
+              {t("game:waitNextHint")}
+            </p>
+          )}
+          {lobby && here !== undefined && (
             <p
               data-players-here
               className="text-text-muted mt-3 text-xl font-semibold tabular-nums"

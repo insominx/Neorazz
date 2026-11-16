@@ -151,7 +151,7 @@ const Leaderboard = ({ data: { oldLeaderboard, leaderboard } }: Props) => {
   const commentary = boardCommentary(oldLeaderboard, leaderboard)
 
   return (
-    <section className="relative mx-auto flex w-full max-w-[96rem] flex-1 flex-col items-center justify-center px-2">
+    <section className="animate-rz-screen-in relative mx-auto flex w-full max-w-[96rem] flex-1 flex-col items-center justify-center px-2">
       <h2 className="text-text-primary stage:text-6xl mb-8 text-5xl font-bold">
         {t("game:leaderboard")}
       </h2>

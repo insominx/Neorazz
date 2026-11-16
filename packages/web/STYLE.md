@@ -153,6 +153,10 @@ gold `#f5c542` / `#9a7412`, silver `#c7d0dc` / `#6b7688`, bronze `#d08a4c` /
 - Dialogs and their overlays enter with `animate-rz-fade-in` (opacity only, so
   it composes with the centring translate). Toasts take the `surface` /
   `border` / `text-primary` roles in both registers.
+- Screens fade in, they never cut: the lobby, the start, the round card, the
+  leaderboard and the podium enter with `animate-rz-screen-in` (500 ms,
+  linear, so no tenth of a second brightens the frame much). The question, the
+  answers and the reveal need none: they morph in place.
 - Calm motion: `--rz-dur-base: .5s`, `--rz-ease-calm: cubic-bezier(.16,1,.3,1)`.
   Respect `prefers-reduced-motion`.
 - The question intro renders only the localized `Question #N` label. Fade it in
@@ -189,7 +193,8 @@ gold `#f5c542` / `#9a7412`, silver `#c7d0dc` / `#6b7688`, bronze `#d08a4c` /
 `<Atmosphere recipe="photo">` is the light behind the show, made in code: a deep
 navy gradient (`rz-backdrop`), one glow per **mood** (`rz-mood-*`) that
 crossfades as the game moves, and, in the full show only, beams (`rz-beam`) at
-the opening and the finale and embers (`rz-ember`) in the last seconds. There is
+the opening and the finale and a moment's own light (below). There are no
+embers: nothing drifts behind the answers while the room reads (task 0012). There is
 **no photo by default**, so a phone downloads nothing for it. A teacher's
 uploaded background sits above the gradient and under the glow (the image is
 positioned, because an unpositioned one paints under the layer behind it and an
@@ -205,6 +210,34 @@ game screens; use `placement="container"` (`absolute`) only inside a
 positioned, overflow-clipped preview. `<Atmosphere recipe="ambient">` is the
 no-photo auth/config recipe.
 
+## Light, not paint
+
+Big moments go brighter, but by the show's own light, never by painting the
+frame (task 0015 replaced task 0008's full-frame floods, which made a dark room
+19 to 43 times brighter in a tenth of a second). A screen asks for light with
+`stores/stage-light.ts`, and `Atmosphere` draws it behind everything, so it
+stays behind the copy and over a deck's slide:
+
+- **Floor light** (`useFloorLight`): a glow in the moment's colour rising from
+  the bottom of the frame, as a poll's room does (`rz-floor`, 900 ms).
+- **Flares** (`useFlares`): a pool of light behind what the moment is about, and
+  rings of the same light leaving it (`rz-flare`, `rz-flare-ring`, round ones
+  for a word or a block).
+- **Beam focus** (`useBeamFocus`): the beams turn in over the centre, slowly,
+  and back the same way.
+- **Words** (`StageMoment`, `rz-moment`): a moment's word or name lands like a
+  poll's names (rises 2.75 rem and sharpens in), holds, and leaves upward, in
+  brand, warning or gold with a glow. A block that keeps its own colours lands
+  with `rz-land`.
+
+Nothing fills or covers the frame: no `FrameHit`, no `data-hit`. The budget,
+measured frame by frame (`razzia-workflow` task 0015, `record_moments.py`):
+the frame's mean luminance never rises by more than 0.03 in any 0.1 s, under 5%
+of the screen brightens by 0.25 or more in any 0.1 s, and a moment's peak is at
+most 0.03 above where the screen settles. A poll's arrivals measure 0.013, 2.3%
+and 0.006. A solid colour that has to appear (a podium block) fades in on its
+own linear clock, never on a spring.
+
 ## The line, the clock and the count
 
 - **The line** (`ChargeLine`) is one bar of light between the question and the
@@ -219,6 +252,11 @@ no-photo auth/config recipe.
   left. In the last five seconds the digit swells, heats to `warning` and pulses
   on every tick, and the room runs warm. **The count** is how many are in.
   Each is one large number with one small label.
+- **The heartbeat** (task 0012, concept 5, calm): while answering is open the
+  projector plays the poll's `beat` cue, 56 bpm at the unlock quickening to 120
+  by the end, and hands over to the last five seconds' ticks. Each answer pings
+  a step higher and the count flashes (`rz-hud-flash`, brand, from 1.2x). Nothing
+  else moves: no room light and no rings while people are reading.
 - The question screen holds the same bottom structure the answers screen has
   (the clock row, the room the tiles will fill, the bottom 8%), so the prompt
   never moves when the answers arrive.
@@ -227,27 +265,25 @@ no-photo auth/config recipe.
 
 The verdict is staged on one server-stamped clock (`result-reveal.ts`,
 `docs/adr/0003-staged-result-reveal.md`), so the room and every phone land each
-beat together. Big moments go **brighter, not darker**: in a lit room a
-blackout dims the frame by a fifth, while a full-frame fill brightens it almost
-five times. So TIME, the verdict and the winner each take the whole frame in one
-solid colour with pure black type (`FrameHit`), and nothing moves or shakes over
-text.
+beat together. Its big moments are light, not paint (above), and nothing moves
+or shakes over text.
 
-| beat     | at     | the projector                                                               | a phone                         |
-| -------- | ------ | --------------------------------------------------------------------------- | ------------------------------- |
-| TIME     | 0 s    | floods hot orange, "TIME" (or "ALL IN" if everyone answered)                | holds                           |
-| count    | 0.6 s  | rails grow from the letter blocks, smallest first; shares count up inside   | holds                           |
-| question | 2.25 s | everything but the most-picked answer goes dark; a heartbeat. Ties stay lit | holds                           |
-| strike   | 3.0 s  | the right answer floods the frame from its tile, holds, collapses into it   | colour and glyph, nothing else  |
-| settled  | 4.5 s  | the final grid; the headline ("Only 3 of 18 got it. 8 fell for B.")         | after 2 s: points, streak, rank |
+| beat     | at     | the projector                                                                                                      | a phone                                                        |
+| -------- | ------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| TIME     | 0 s    | "TIME" lands in warning where the clock was (or the poll's "Everyone's in", brand, with its check)                 | "Watch the big screen", still                                  |
+| count    | 0.6 s  | rails grow from the letter blocks, smallest first; shares count up inside; TIME holds                              | holds                                                          |
+| question | 2.25 s | everything but the most-picked answer dims over 0.6 s; a heartbeat. Ties stay lit                                  | holds                                                          |
+| strike   | 3.0 s  | TIME rises away; the right answer lights where it is, three rings of green leave it, green light pools behind it   | the badge lands with one ring; its colour rises from the floor |
+| settled  | 4.5 s  | the final grid, the green light still behind the right answer; the headline ("Only 3 of 18 got it. 8 fell for B.") | after 2 s: points, streak, rank                                |
 
-The flood always leaves the **right** tile, so the room reads whether the light
-stayed or jumped from what was lit during the question. A phone's colour is
-success green, danger red, or grey for no answer. Calm, Silent and reduced
-motion keep the schedule but drop the flood and the spotlight: the verdict
-happens on the tile, and TIME is said in the headline's place. A client that
-arrives after a beat (a reconnect, a woken phone, a lecture review) is settled:
-no flood, no sound, no buzz.
+The light always leaves the **right** tile, so the room reads whether it stayed
+or jumped from what was lit during the question. A phone's colour is success
+green, danger red, or grey for no answer; the phone itself stays dark. The last
+five seconds' warm room holds through TIME and then eases back. Calm, Silent
+and reduced motion keep the schedule and the words but drop the light, the
+rings and the spotlight: the verdict happens on the tile. A client that arrives
+after a beat (a reconnect, a woken phone, a lecture review) is settled: no
+words, no light, no sound, no buzz.
 
 ## Phones
 
@@ -258,8 +294,12 @@ A phone's own game, in three screens beside the verdict (and the tap itself).
   before the server's own screen arrives.
 - **Locked in** (`Wait`): the tile you picked, held, with "Locked in" over it
   and "N of M in" counting up as the room answers. Tapping it nudges it. Any
-  other wait (the lobby, a lecture hold) is the plain spinner; in the lobby it
-  also says "You're in, Ada" and how many are here.
+  other wait (the lobby, a lecture hold) is still: a "Connected" badge (or
+  "Reconnecting…") and its line, and nothing spins. In the lobby it says
+  "You're in, Ada", "Waiting for the host", that what comes next shows up on
+  its own, and how many are here.
+- **The verdict** (`Result`): "Watch the big screen" while the room builds up
+  to it, then the badge lands on the strike (see the reveal).
 - **Standing** (`Standing`, `SHOW_STANDING`): sent to every phone when the host
   shows the leaderboard, because `SHOW_LEADERBOARD` only reaches the host. Your
   place, ▲/▼ since the last question (nothing after the first one, whose
@@ -314,10 +354,14 @@ prototypes).
   race, or who leads). It works for a room of one.
 - **Podium**: third, second, a roll, then first, on the score's clock
   (`podiumTimes`, pulled earlier for each place nobody holds). Blocks are solid
-  medal colours risen on springs. First place takes the whole frame in gold with
-  the winner's name (`FrameHit kind="winner"`), then clears to the podium while
-  confetti bursts and stops. Calm and Silent keep the sequence but not the flood
-  or the confetti.
+  medal colours risen on springs; each fades in on its own 0.6 s linear clock so
+  no medal colour pops in at full brightness. During the roll the beams turn in
+  over first place and stay on the winner. First place: gold light rises from
+  the floor and stays, two round rings of gold leave the gold block, the
+  winner's name lands in gold between the title and the podium for 2.6 s
+  (`WINNER_MOMENT_MS`) and rises away, and confetti bursts and stops. Calm and
+  Silent keep the sequence and the name but not the light, the beams or the
+  confetti.
 
 ## First impressions
 
@@ -334,9 +378,10 @@ prototypes).
   that pushed the header to the top edge). Kicking still goes through a
   confirmation.
 - **Start**: the title with a pass of light, then one lamp per second of the
-  countdown. **GO** belongs to the first round card (`useLaunchStore`), because
-  the lamps end exactly as it replaces them; a card nobody counted down to has
-  no GO.
+  countdown; a lamp lights over 0.35 s. **GO** belongs to the first round card
+  (`useLaunchStore`), because the lamps end exactly as it replaces them; a card
+  nobody counted down to has no GO. GO lands in brand with one round ring and
+  the floor light, holds 0.9 s, and rises away as the card comes up under it.
 - **Round card** (`Prepared`): "Question 4 of 6" and "Final question" on the
   last (also on the question and answer screens, so the label never changes under
   the morph), the big number, and one pip per question; a deck of more than twelve
@@ -380,9 +425,10 @@ of the production bundle.
 ## Show intensity
 
 A per-game setting in the Visuals tab, snapshotted at game creation like the
-sound theme. **Full** is everything. **Calm** keeps the picture and drops the
-full-frame hits, the spotlight, beams and embers (the verdict happens on the
-tile); its music is 12 dB lower with no groove while answering. **Silent** is
+sound theme. **Full** is everything. **Calm** keeps the picture and the words
+and drops a moment's light (floor light, flares and rings), the spotlight,
+the beams and the confetti (the verdict happens on the tile); its music is 12 dB
+lower with no groove while answering, and the heartbeat plays at half strength. **Silent** is
 Calm with no audio. A device set to reduced motion gets Calm's visuals, and
 also drops the count animation; audio does not follow it. Read it with
 `useShowIntensity` / `useCalmVisuals`.
@@ -400,6 +446,6 @@ also drops the count animation; audio does not follow it. Read it with
 ## Recorded deviations
 
 1. Unknown persisted dialect falls back via `.catch(DEFAULT_DIALECT)` without discarding password/background.
-2. The celebration is staged, not looped: the podium's roll, the winner's gold flood and a confetti burst that stops, and the same for a phone's top three. Confetti colours are read from the answer, brand and gold tokens instead of the library's rainbow.
+2. The celebration is staged, not looped: the podium's roll, the winner's gold light and name, and a confetti burst that stops, and the same for a phone's top three. Confetti colours are read from the answer, brand and gold tokens instead of the library's rainbow.
 3. Quizzes never persist dialect or sound theme — only `GameVisualsConfig` may.
 4. Room QR modules stay black-on-white for scanner reliability.

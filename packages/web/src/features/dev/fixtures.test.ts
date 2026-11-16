@@ -44,6 +44,7 @@ describe("statusFor", () => {
       "room-60": STATUS.SHOW_ROOM,
       start: STATUS.SHOW_START,
       prepared: STATUS.SHOW_PREPARED,
+      "prepared-go": STATUS.SHOW_PREPARED,
       question: STATUS.SHOW_QUESTION,
       answers: STATUS.SELECT_ANSWER,
       result: STATUS.SHOW_RESULT,
@@ -62,6 +63,7 @@ describe("statusFor", () => {
       "finished-mid": STATUS.FINISHED,
       wait: STATUS.WAIT,
       "wait-lobby": STATUS.WAIT,
+      "poll-arrivals": STATUS.SHOW_ROOM,
     }
 
     for (const { id } of FIXTURES) {

@@ -29,7 +29,7 @@ import {
   useSurfaceOverride,
 } from "@razzia/web/hooks/use-surface"
 import { MotionConfig } from "motion/react"
-import { useLayoutEffect, useMemo, useState } from "react"
+import { type ReactNode, useLayoutEffect, useMemo, useState } from "react"
 
 const FRAME_GAME_ID = "dev-frame"
 
@@ -68,6 +68,8 @@ interface Props {
   fake: FakeSocket
   /** Read when the frame mounts or its view or intensity changes. */
   seed: FrameSeed
+  /** Drawn over the screen, inside its socket (the Director's poll run). */
+  overlay?: ReactNode
 }
 
 /**
@@ -87,6 +89,7 @@ const FrameStage = ({
   mount,
   fake,
   seed,
+  overlay,
 }: Props) => {
   useSurfaceOverride({ dialect, surface, stage: view === "host" })
 
@@ -201,6 +204,7 @@ const FrameStage = ({
             screen
           )}
         </GameWrapper>
+        {overlay}
       </MotionConfig>
     </SocketContext.Provider>
   )

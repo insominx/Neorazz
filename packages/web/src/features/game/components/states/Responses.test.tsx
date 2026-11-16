@@ -9,6 +9,7 @@ import {
 import type { SceneOptions, SceneSpec } from "@razzia/web/features/game/audio"
 import { anchorOf, originMs } from "@razzia/web/features/game/audio/scenes"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
+import { useStageLightStore } from "@razzia/web/features/game/stores/stage-light"
 import { act, cleanup, render, screen } from "@testing-library/react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -304,26 +305,45 @@ describe("Responses staged verdict", () => {
     )
   })
 
-  it("takes the whole frame for TIME, then clears it", async () => {
+  it("says TIME where the clock was and holds it until the strike", async () => {
     await renderResponses(staged({ totalPlayers: 25 }))
 
+    const time = () => document.querySelector("[data-moment]")
+
     expect(phaseOf()).toBe("time")
-    expect(document.querySelector("[data-hit='time']")).toHaveTextContent(
+    expect(document.querySelector("[data-time-label]")).toHaveTextContent(
       "game:reveal.time",
     )
+    expect(time()).toHaveAttribute("data-tone", "warning")
+    // A word in the room's light: nothing fills the frame.
+    expect(document.querySelector("[data-hit]")).toBeNull()
 
     advance(RESULT_COUNT_MS + 50)
 
     expect(phaseOf()).toBe("count")
-    expect(document.querySelector("[data-hit]")).toBeNull()
+    expect(time()).not.toHaveAttribute("data-leaving")
+
+    advance(RESULT_STRIKE_MS - RESULT_COUNT_MS)
+
+    expect(phaseOf()).toBe("strike")
+    expect(time()).toHaveAttribute("data-leaving")
+
+    advance(RESULT_SETTLED_MS - RESULT_STRIKE_MS)
+
+    expect(time()).toBeNull()
   })
 
-  it("says ALL IN when everyone answered before the clock ran out", async () => {
+  it("says the poll's Everyone's in, with its check, when everyone answered", async () => {
     await renderResponses(staged({ totalPlayers: 18 }))
 
-    expect(document.querySelector("[data-hit='time']")).toHaveTextContent(
+    expect(document.querySelector("[data-time-label]")).toHaveTextContent(
       "game:reveal.allIn",
     )
+    expect(document.querySelector("[data-moment]")).toHaveAttribute(
+      "data-tone",
+      "brand",
+    )
+    expect(document.querySelector(".rz-arrival-tick")).not.toBeNull()
   })
 
   it("holds the verdict back: no tile is right or wrong until the strike", async () => {
@@ -373,35 +393,36 @@ describe("Responses staged verdict", () => {
     expect(spotted()).toEqual(["A", "B"])
   })
 
-  it("floods the frame from the right answer on the strike, then settles", async () => {
+  it("lights the right answer where it is on the strike, with its light behind it", async () => {
     await renderResponses(staged())
+
+    expect(useStageLightStore.getState().flares).toEqual([])
 
     advance(RESULT_STRIKE_MS + 50)
 
     expect(phaseOf()).toBe("strike")
     expect(states()).toEqual(["correct", "wrong", "wrong", "wrong"])
-    expect(document.querySelector("[data-hit='strike']")).toHaveTextContent(
-      "Alpha",
-    )
     expect(spotted()).toEqual([])
+    expect(document.querySelector("[data-hit]")).toBeNull()
+
+    const [flare] = useStageLightStore.getState().flares
+
+    expect(flare).toMatchObject({ tone: "success", rings: 3 })
 
     advance(RESULT_SETTLED_MS - RESULT_STRIKE_MS)
 
+    // The light stays on the right answer as the grid settles.
     expect(phaseOf()).toBe("settled")
-    expect(document.querySelector("[data-hit]")).toBeNull()
+    expect(useStageLightStore.getState().flares).toHaveLength(1)
     expect(states()).toEqual(["correct", "wrong", "wrong", "wrong"])
   })
 
-  it("names every right answer in the flood when there are several", async () => {
+  it("puts light behind every right answer when there are several", async () => {
     await renderResponses(staged({ solutions: [0, 2] }))
 
     advance(RESULT_STRIKE_MS + 50)
 
-    const flood = document.querySelector("[data-hit='strike']")
-
-    expect(flood).toHaveTextContent("Alpha")
-    expect(flood).toHaveTextContent("Gamma")
-    expect(flood).not.toHaveTextContent("Beta")
+    expect(useStageLightStore.getState().flares).toHaveLength(2)
   })
 
   it("lands the headline after the strike, naming who was fooled", async () => {
@@ -452,13 +473,14 @@ describe("Responses staged verdict", () => {
     )
   })
 
-  it("is the final grid at once for a reconnect after the reveal: no flood", async () => {
+  it("is the final grid at once for a reconnect after the reveal: no moment", async () => {
     const now = Date.now()
 
     await renderResponses(staged({ resultsAt: now - 60_000, serverNow: now }))
 
     expect(phaseOf()).toBe("settled")
-    expect(document.querySelector("[data-hit]")).toBeNull()
+    expect(document.querySelector("[data-moment]")).toBeNull()
+    expect(useStageLightStore.getState().flares).toEqual([])
     expect(document.querySelector("[data-headline]")).toHaveAttribute(
       "data-shown",
     )
@@ -498,14 +520,21 @@ describe("Responses staged verdict", () => {
       )
     })
 
-    it("says TIME in the headline's place instead of flooding the frame", async () => {
+    it("still says TIME in the headline's place, until the strike", async () => {
       await renderResponses(staged())
 
       expect(document.querySelector("[data-time-label]")).toHaveTextContent(
         "game:reveal.allIn",
       )
+      expect(document.querySelector("[data-moment]")).toHaveAttribute(
+        "data-calm",
+      )
 
       advance(RESULT_COUNT_MS + 50)
+
+      expect(document.querySelector("[data-time-label]")).not.toBeNull()
+
+      advance(RESULT_SETTLED_MS)
 
       expect(document.querySelector("[data-time-label]")).toBeNull()
     })

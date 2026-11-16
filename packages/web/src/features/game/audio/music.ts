@@ -135,6 +135,7 @@ const CALM_DROPS: ReadonlySet<InstrumentName> = new Set([
   "impact",
   "crash",
   "riser",
+  "crowd",
 ])
 
 export const isCalmDrop = (inst: InstrumentName): boolean =>
