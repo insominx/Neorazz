@@ -1,4 +1,6 @@
 import type { Status } from "@razzia/common/types/game/status"
+import type { AskRoomView } from "@razzia/common/types/ask"
+
 import { z } from "zod"
 
 // The messages a lecture deck and this page exchange with postMessage. The
@@ -22,6 +24,20 @@ const pollTarget = {
 
 const deckCommandSchema = z.discriminatedUnion("type", [
   z.object({ ...envelope, type: z.literal("hello") }),
+  // The presenter's drawer (`presenterInbox`, ADR 0007). `open: true` asks for
+  // the attached room's waiting questions, sent as `inbox` messages until
+  // `open: false`; the wish outlives reconnects and room changes.
+  z.object({ ...envelope, type: z.literal("inbox"), open: z.boolean() }),
+  // Got it: one waiting question, or all of them, become seen.
+  z.object({
+    ...envelope,
+    type: z.literal("markAsk"),
+    askId: z.string().min(1).max(64),
+  }),
+  z.object({ ...envelope, type: z.literal("markAllAsks") }),
+  // Pause or resume this room's question box only. Unlike `askBox`, nothing
+  // is held for the next room.
+  z.object({ ...envelope, type: z.literal("askOpen"), open: z.boolean() }),
   z.object({
     ...envelope,
     type: z.literal("ensureGame"),
@@ -178,7 +194,47 @@ export const FEATURES: readonly string[] = [
   "sound",
   "pollAfterPodium",
   "asks",
+  // `presenterInbox`: the `inbox`, `markAsk`, `markAllAsks` and `askOpen`
+  // commands and the `inbox` message: the attached room's waiting questions,
+  // only while the deck asks (ADR 0007).
+  "presenterInbox",
 ]
+
+// One waiting question, as the presenter's drawer draws it.
+export interface BridgeAsk {
+  id: string
+  text: string
+  // The minute it arrived (ISO).
+  at: string
+  name?: string
+}
+
+// The attached room's waiting questions, oldest first, at most 50; `total` is
+// how many are waiting in all.
+export interface BridgeInbox {
+  gameId: string
+  open: boolean
+  total: number
+  asks: BridgeAsk[]
+}
+
+export const INBOX_LIMIT = 50
+
+export const toBridgeInbox = (room: AskRoomView): BridgeInbox => {
+  const waiting = (room.record?.asks ?? []).filter((ask) => ask.state === "new")
+
+  return {
+    gameId: room.gameId,
+    open: room.open,
+    total: waiting.length,
+    asks: waiting.slice(0, INBOX_LIMIT).map((ask) => ({
+      id: ask.id,
+      text: ask.text,
+      at: ask.at,
+      ...(ask.name ? { name: ask.name } : {}),
+    })),
+  }
+}
 
 // The poll showing on the stage. Never a name, whatever the poll.
 export interface BridgePoll {
@@ -256,6 +312,7 @@ export type BridgeErrorCode =
   | "noAck"
 
 export type BridgeMessageBody =
+  | { type: "inbox"; room: BridgeInbox | null }
   | { type: "ready" | "status"; state: BridgeState }
   | {
       type: "result"

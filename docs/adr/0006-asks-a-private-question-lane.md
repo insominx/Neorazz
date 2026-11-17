@@ -1,7 +1,7 @@
 # 0006. Asks: a private question lane
 
 Date: 2026-11-14  
-Status: Proposed
+Status: Proposed. A1 and "The deck" are amended by `0007` (the presenter's drawer).
 
 ## Context
 

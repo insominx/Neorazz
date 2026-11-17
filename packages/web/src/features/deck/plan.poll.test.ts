@@ -60,6 +60,7 @@ describe("buildBridgeState and polls", () => {
       "sound",
       "pollAfterPodium",
       "asks",
+      "presenterInbox",
     ])
     expect(buildBridgeState(inputs({ attached: false })).features).toEqual([
       "poll",
@@ -68,6 +69,7 @@ describe("buildBridgeState and polls", () => {
       "sound",
       "pollAfterPodium",
       "asks",
+      "presenterInbox",
     ])
   })
 

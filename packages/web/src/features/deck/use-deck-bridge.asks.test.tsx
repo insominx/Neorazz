@@ -412,3 +412,109 @@ describe("what the deck is told (7.2, A1)", () => {
     expect(new Set(askKeys())).toEqual(new Set(["open,waiting"]))
   })
 })
+
+// ADR 0007: the presenter's drawer asks for the attached room's waiting
+// questions; nothing is sent until it asks, and only that room ever is.
+describe("the presenter's drawer (inbox, ADR 0007)", () => {
+  const ask = (id: string, state: "new" | "seen", name?: string) => ({
+    id,
+    text: `${TEXT} ${id}`,
+    at: "2026-11-17T10:00:00.000Z",
+    state,
+    ...(name ? { name } : {}),
+  })
+  const room = (gameId: string, open = true) => ({
+    gameId,
+    inviteCode: "123456",
+    gameSubject: "Talk",
+    open,
+    waiting: 2,
+    saved: true,
+    record: {
+      id: RECORD_ID,
+      gameSubject: "Talk",
+      date: "2026-11-17T10:00:00.000Z",
+      asks: [ask("a1", "new", NAME), ask("a2", "seen"), ask("a3", "new")],
+    },
+  })
+  const inboxes = () => posted().filter((message) => message.type === "inbox")
+  const emitted = (event: string) =>
+    mocks.socket.emit.mock.calls.filter(([name]) => name === event)
+  const ready = () => {
+    mount()
+    fire(EVENTS.MANAGER.CONFIG, config)
+    attach()
+  }
+
+  it("lists presenterInbox in features", () => {
+    mount()
+
+    expect(lastState()?.features).toContain("presenterInbox")
+  })
+
+  it("watches only once the deck asks, and sends only this room's new questions", () => {
+    ready()
+    fire(EVENTS.ASKS.LIVE, { rooms: [room("g-1")], records: [] })
+    expect(inboxes()).toEqual([])
+    expect(emitted(EVENTS.ASKS.WATCH)).toEqual([])
+
+    sendCommand({ type: "inbox", open: true })
+    expect(emitted(EVENTS.ASKS.WATCH).length).toBeGreaterThan(0)
+    fire(EVENTS.ASKS.LIVE, { rooms: [room("g-2"), room("g-1")], records: [] })
+
+    const last = inboxes().at(-1)
+    expect(last?.type === "inbox" ? last.room : undefined).toEqual({
+      gameId: "g-1",
+      open: true,
+      total: 2,
+      asks: [
+        {
+          id: "a1",
+          text: `${TEXT} a1`,
+          at: "2026-11-17T10:00:00.000Z",
+          name: NAME,
+        },
+        { id: "a3", text: `${TEXT} a3`, at: "2026-11-17T10:00:00.000Z" },
+      ],
+    })
+
+    const before = inboxes().length
+    fire(EVENTS.ASKS.ROOM, room("g-2"))
+    expect(inboxes().length).toBe(before)
+  })
+
+  it("marks one or all as seen in this room's record, and pauses only this room", () => {
+    ready()
+    sendCommand({ type: "inbox", open: true })
+    fire(EVENTS.ASKS.LIVE, { rooms: [room("g-1")], records: [] })
+
+    sendCommand({ type: "markAsk", askId: "a1" })
+    sendCommand({ type: "markAllAsks" })
+    sendCommand({ type: "askOpen", open: false })
+
+    expect(emitted(EVENTS.ASKS.MARK)[0]?.[1]).toEqual({
+      recordId: RECORD_ID,
+      askId: "a1",
+      state: "seen",
+    })
+    expect(emitted(EVENTS.ASKS.MARK_ALL)[0]?.[1]).toEqual({
+      recordId: RECORD_ID,
+    })
+    expect(emitted(EVENTS.ASKS.SET_OPEN)[0]?.[1]).toEqual({
+      gameId: "g-1",
+      open: false,
+    })
+    expect(askBoxSent()).toEqual([])
+  })
+
+  it("stops sending questions once the deck closes the drawer", () => {
+    ready()
+    sendCommand({ type: "inbox", open: true })
+    sendCommand({ type: "inbox", open: false })
+    const before = inboxes().length
+    fire(EVENTS.ASKS.LIVE, { rooms: [room("g-1")], records: [] })
+
+    expect(inboxes().length).toBe(before)
+    expect(emitted(EVENTS.ASKS.UNWATCH).length).toBeGreaterThan(0)
+  })
+})

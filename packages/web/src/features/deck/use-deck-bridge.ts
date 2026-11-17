@@ -1,4 +1,5 @@
 import { EVENTS } from "@razzia/common/constants"
+import type { AskRoomView } from "@razzia/common/types/ask"
 import type { LectureOutcome } from "@razzia/common/types/game"
 import { STATUS } from "@razzia/common/types/game/status"
 import type { PollOutcome } from "@razzia/common/types/poll"
@@ -25,6 +26,7 @@ import {
   type PollCommand,
   PROTOCOL_VERSION,
   type RoundCommand,
+  toBridgeInbox,
   toForwardedKey,
 } from "@razzia/web/features/deck/protocol"
 import {
@@ -128,6 +130,10 @@ export const useDeckBridge = () => {
   // applied to every room this page becomes the manager of, for as long as
   // the page lives in the frame.
   const askBoxHeldClosed = useRef(false)
+  // The deck's drawer wants the room's waiting questions (`inbox { open }`),
+  // and the record they belong to, for Got it.
+  const inboxWanted = useRef(false)
+  const inboxRecordId = useRef<string | null>(null)
 
   const state = buildBridgeState({
     connected: isConnected,
@@ -168,6 +174,57 @@ export const useDeckBridge = () => {
       )
     },
     [],
+  )
+
+  // Only the room this page is attached to ever reaches the deck; other rooms
+  // a watch brings in stay here.
+  const deliverInbox = (room: AskRoomView | null) => {
+    if (!inboxWanted.current) {
+      return
+    }
+
+    const { gameId: current } = stateRef.current
+    const mine =
+      room && current && room.gameId === current ? room : null
+
+    inboxRecordId.current = mine?.record?.id ?? null
+    post({ type: "inbox", room: mine ? toBridgeInbox(mine) : null })
+  }
+
+  useEvent(EVENTS.ASKS.LIVE, (live) => {
+    deliverInbox(
+      live.rooms.find((room) => room.gameId === stateRef.current.gameId) ??
+        null,
+    )
+  })
+
+  useEvent(EVENTS.ASKS.ROOM, (room) => {
+    if (room.gameId === stateRef.current.gameId) {
+      deliverInbox(room)
+    }
+  })
+
+  // Watching again on every new connection, login or room brings a fresh
+  // `asks:live`, so the drawer follows the room this page is attached to.
+  useEffect(() => {
+    if (!inboxWanted.current) {
+      return
+    }
+
+    inboxRecordId.current = null
+
+    if (isConnected && loggedIn && gameId) {
+      socket.emit(EVENTS.ASKS.WATCH)
+    } else {
+      post({ type: "inbox", room: null })
+    }
+  }, [gameId, loggedIn, isConnected, post, socket])
+
+  useEffect(
+    () => () => {
+      socket.emit(EVENTS.ASKS.UNWATCH)
+    },
+    [socket],
   )
 
   const stopRetry = useCallback(() => {
@@ -629,6 +686,60 @@ export const useDeckBridge = () => {
 
     if (command.type === "reviewPoll") {
       showPollAgain(command.id)
+
+      return
+    }
+
+    if (command.type === "inbox") {
+      inboxWanted.current = command.open
+      inboxRecordId.current = null
+
+      if (command.open && isConnected && loggedIn && gameId) {
+        socket.emit(EVENTS.ASKS.WATCH)
+      } else {
+        socket.emit(EVENTS.ASKS.UNWATCH)
+        post({ type: "inbox", room: null })
+      }
+
+      return
+    }
+
+    if (
+      command.type === "markAsk" ||
+      command.type === "markAllAsks" ||
+      command.type === "askOpen"
+    ) {
+      const answer = (outcome?: string) => {
+        post({
+          type: "result",
+          command: command.type,
+          outcome: outcome === "accepted" ? "accepted" : "ignored",
+          ...(outcome === "accepted" ? {} : { reason: outcome ?? "noAck" }),
+        })
+      }
+      const recordId = inboxRecordId.current
+
+      if (command.type === "askOpen") {
+        if (attached && gameId && lecture) {
+          socket.emit(
+            EVENTS.ASKS.SET_OPEN,
+            { gameId, open: command.open },
+            answer,
+          )
+        } else {
+          answer("notAttached")
+        }
+      } else if (!recordId) {
+        answer("notFound")
+      } else if (command.type === "markAsk") {
+        socket.emit(
+          EVENTS.ASKS.MARK,
+          { recordId, askId: command.askId, state: "seen" },
+          answer,
+        )
+      } else {
+        socket.emit(EVENTS.ASKS.MARK_ALL, { recordId }, answer)
+      }
 
       return
     }
