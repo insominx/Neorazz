@@ -98,6 +98,7 @@ describe("the poll commands", () => {
       "sound",
       "pollAfterPodium",
       "asks",
+      "presenterInbox",
     ])
   })
 })
