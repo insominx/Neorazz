@@ -2,6 +2,10 @@
   <img width="450" height="155" align="center" src=".github/logo.svg" alt="Neorazz">
 </p>
 
+<p align="center">
+  <img width="800" src=".github/trailer.gif" alt="Neorazz in 20 seconds: the room joins with a PIN, everyone answers on their phone, the reveal shows on the big screen and every phone, a poll fills as the votes arrive, and a podium crowns the winner.">
+</p>
+
 ## 🧩 What is this project?
 
 Neorazz is a self-hosted, open-source quiz and poll platform for classrooms and talks. A presenter runs it on their own server; the room joins from their phones with a PIN.
