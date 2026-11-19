@@ -1,8 +1,8 @@
 services:
-  razzia:
-    image: ralex91/razzia:latest
-    # To run this checkout instead of the published image, uncomment:
-    # build: .
+  neorazz:
+    # Neorazz publishes no image yet, so this builds the checkout.
+    build: .
+    image: neorazz:local
     ports:
       - "3000:3000"
     volumes:
