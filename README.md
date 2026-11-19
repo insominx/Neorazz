@@ -1,23 +1,22 @@
 <p align="center">
-  <img width="450" height="120" align="center" src=".github/logo.svg">
-  <br>
-  <div align="center">
-    <img alt="Visitor Badge" src="https://api.visitorbadge.io/api/visitors?path=https://github.com/Ralex91/Razzia/edit/main/README.md&countColor=%23FF9900">
-    <img src="https://img.shields.io/docker/pulls/ralex91/razzia?style=for-the-badge&color=FF9900" alt="Docker Pulls">
-  </div>
+  <img width="450" height="155" align="center" src=".github/logo.svg" alt="Neorazz">
 </p>
 
 ## 🧩 What is this project?
 
-Razzia is a straightforward and open-source quiz platform, allowing users to host it on their own server for smaller events.
+Neorazz is a self-hosted, open-source quiz and poll platform for classrooms and talks. A presenter runs it on their own server; the room joins from their phones with a PIN.
 
-> **Disclaimer**: Razzia is an independent, open-source software project. It is not affiliated with, endorsed by, or sponsored by any third-party quiz platform or service. Any resemblance to other quiz platforms is purely incidental.
+It began as a fork of [Razzia](https://github.com/Ralex91/Razzia) by Ralex91 and has changed enough to carry its own name. On top of Razzia's quizzes it adds:
 
-<p align="center">
-  <img width="30%" src=".github/previews/1.png" alt="Login">
-  <img width="30%" src=".github/previews/2.png" alt="Manager Room">
-  <img width="30%" src=".github/previews/3.png" alt="Question Screen">
-</p>
+- **Lecture rooms** that hold through a whole lecture: late joiners are let in, and each question is played from its own slide ([ADR 0002](docs/adr/0002-lecture-mode-and-deck-bridge.md)).
+- **A deck bridge**, so an HTML slide deck can open a room, run questions and polls, and drive the sound from its own slides ([ADR 0005](docs/adr/0005-polls-from-a-deck.md)).
+- **Polls**, sealed by default, with each vote arriving on the shared screen ([ADR 0004](docs/adr/0004-polls-as-a-room-lane.md)).
+- **A private question box** that the presenter reads from a drawer while the projector shows only a count ([ADR 0006](docs/adr/0006-asks-a-private-question-lane.md), [ADR 0007](docs/adr/0007-presenter-drawer.md)).
+- **A staged show**: a server-clocked answer reveal, a generated score, stage light, and screens spaced for phones through projectors.
+
+Razzia's code is MIT licensed, and so is Neorazz; the original copyright notice is kept in [LICENSE](LICENSE). Inside the code, package names, storage keys and the deck-bridge protocol still say `razzia`, so existing decks and saved data keep working.
+
+> **Disclaimer**: Neorazz is an independent, open-source software project. It is not affiliated with, endorsed by, or sponsored by any third-party quiz platform or service. Any resemblance to other quiz platforms is purely incidental.
 
 ## ⚙️ Prerequisites
 
@@ -38,21 +37,22 @@ Choose your deployment method:
 
 ### 🐳 Using Docker (Recommended)
 
-Using Docker Compose (recommended):
-You can find the docker compose configuration in the repository:
-[docker-compose.yml](/compose.yml)
+Neorazz publishes no image yet, so Docker builds it from this checkout. Using Docker Compose ([compose.yml](/compose.yml)):
 
 ```bash
-docker compose up -d
+git clone https://github.com/insominx/Neorazz.git
+cd ./Neorazz
+docker compose up -d --build
 ```
 
 Or using Docker directly:
 
 ```bash
+docker build -t neorazz:local .
 docker run -d \
   -p 3000:3000 \
   -v ./config:/app/config \
-  ralex91/razzia:latest
+  neorazz:local
 ```
 
 **Configuration Volume:**
@@ -74,8 +74,8 @@ The application will be available at http://localhost:3000
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/Ralex91/Razzia.git
-cd ./Razzia
+git clone https://github.com/insominx/Neorazz.git
+cd ./Neorazz
 ```
 
 2. Install dependencies:
@@ -205,7 +205,7 @@ Quiz Options:
   - `cooldown`: Time in seconds before answers are revealed (3-15)
   - `time`: Time in seconds allowed to answer (5-120)
 
-Background precedence is **quiz override → global default → bundled fallback**. Razzia resolves that choice when a game is created and keeps it fixed for the whole live session, including player joins and reconnects. Changing a background affects newly created games, not one already in progress. On play and editor-preview surfaces, the selected image is composited beneath a measured 75% dark scrim that met the documented contrast floor on Razzia's four X1 adversarial background fixtures (minimum measured 8.02:1).
+Background precedence is **quiz override → global default → bundled fallback**. Neorazz resolves that choice when a game is created and keeps it fixed for the whole live session, including player joins and reconnects. Changing a background affects newly created games, not one already in progress. On play and editor-preview surfaces, the selected image is composited beneath a measured 75% dark scrim that met the documented contrast floor on the four X1 adversarial background fixtures (minimum measured 8.02:1).
 
 ## 🎮 How to Play
 
@@ -254,8 +254,4 @@ An open poll lives in the server's memory, so restarting the server loses it alo
 
 Contributions are welcome! Please read the [CONTRIBUTING.md](.github/CONTRIBUTING.md) guide before submitting a pull request.
 
-For bug reports or feature requests, please [create an issue](https://github.com/Ralex91/Razzia/issues).
-
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Ralex91/Razzia&type=date&legend=bottom-right)](https://www.star-history.com/#Ralex91/Razzia&type=date&legend=bottom-right)
+For bug reports or feature requests, please [create an issue](https://github.com/insominx/Neorazz/issues).

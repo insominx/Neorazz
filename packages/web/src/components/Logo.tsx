@@ -6,25 +6,16 @@ interface Props {
 }
 
 /**
- * The wordmark in the brand colour. It is the svg used as a mask over a brand
- * fill, so it follows the palette (and the light theme) instead of carrying
- * its own orange.
+ * The Neorazz wordmark: seven split-flap cards in front of the brand ring.
+ * The cards carry their own dark fill and edge, so the same svg reads on the
+ * dark register and the light one.
  */
 const Logo = ({ className }: Props) => (
-  <span
-    role="img"
-    aria-label="Razzia"
-    className={clsx("bg-brand block aspect-[333/80]", className)}
-    style={{
-      maskImage: `url(${logo})`,
-      WebkitMaskImage: `url(${logo})`,
-      maskRepeat: "no-repeat",
-      WebkitMaskRepeat: "no-repeat",
-      maskSize: "contain",
-      WebkitMaskSize: "contain",
-      maskPosition: "center",
-      WebkitMaskPosition: "center",
-    }}
+  <img
+    src={logo}
+    alt="Neorazz"
+    draggable={false}
+    className={clsx("block aspect-[360/124] select-none", className)}
   />
 )
 

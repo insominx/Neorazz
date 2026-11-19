@@ -1,5 +1,7 @@
 # Agent notes
 
+The product is **Neorazz** (since 2026-11-18; GitHub `insominx/Neorazz`), a fork of Ralex91/Razzia. Only what people see was renamed: `@razzia/*`, storage keys, `razzia-bridge` and `RAZZIA_ALLOWED_HOSTS` keep the old word on purpose (`docs/adr/0008-the-name-neorazz.md`). Do not rename them without a migration.
+
 ## Task dossiers live in `razzia-workflow/tasks/`
 
 Task dossiers (plans, deep dives, progress, evidence) go in **`razzia-workflow/tasks/<NNNN-slug>/`**, not in `.workflow/tasks/`.

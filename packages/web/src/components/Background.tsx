@@ -9,18 +9,18 @@ const Background = ({ children }: PropsWithChildren) => (
     <Atmosphere recipe="ambient" />
 
     {/* Positioned so it paints above the absolute Atmosphere layer. */}
-    <Logo className="relative z-10 mb-10 h-16" />
+    <Logo className="relative z-10 mb-8 h-24" />
     {children}
 
     <a
-      href="https://github.com/Ralex91/Razzia"
+      href="https://github.com/insominx/Neorazz"
       target="_blank"
       rel="noopener noreferrer"
       className="text-text-faint hover:text-text-muted ease-calm absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1.5 text-sm font-semibold transition-colors"
     >
       <GithubIcon size={14} />
       {/* oxlint-disable-next-line no-undef */}
-      Razzia - v{__APP_VERSION__}
+      Neorazz - v{__APP_VERSION__}
     </a>
   </section>
 )

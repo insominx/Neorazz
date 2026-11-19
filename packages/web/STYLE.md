@@ -1,4 +1,4 @@
-# Razzia design language
+# Neorazz design language
 
 Authority for visual work in `packages/web`. Components consume semantic roles;
 `src/index.css` is the only place a role resolves to a literal.
@@ -15,14 +15,14 @@ Players never choose a dialect. `useSurface` owns the DOM write.
 
 Semantic roles travel as accent / border / tint. Do not mix values across rows.
 
-| role       | meaning                              | dark accent / border / tint                     | light accent / border / tint      |
-| ---------- | ------------------------------------ | ----------------------------------------------- | --------------------------------- |
-| `brand`    | Razzia identity, primary host action | `#46d5c0` / `#2c7a52` / `rgba(70,213,192,.08)`  | `#0d9488` / `#99f6e4` / `#f0fdfa` |
-| `success`  | correct, complete, healthy           | `#3ecf8e` / `#2c7a52` / `rgba(62,207,142,.12)`  | `#15803d` / `#86efac` / `#f0fdf4` |
-| `danger`   | incorrect, destructive, failed       | `#f5604d` / `#6e2a22` / `rgba(245,96,77,.10)`   | `#b91c1c` / `#fca5a5` / `#fef2f2` |
-| `info`     | server authority, codes              | `#5b9dff` / `#2f5fb0` / `rgba(91,157,255,.12)`  | `#2563eb` / `#93c5fd` / `#eff6ff` |
-| `warning`  | time pressure, caution               | `#f08a3c` / `#b5641f` / `rgba(240,138,60,.06)`  | `#c2410c` / `#fdba74` / `#fff7ed` |
-| `sequence` | ordered steps, streaks               | `#b58af5` / `#4a3a6e` / `rgba(181,138,245,.06)` | `#7c3aed` / `#ddd6fe` / `#faf5ff` |
+| role       | meaning                               | dark accent / border / tint                     | light accent / border / tint      |
+| ---------- | ------------------------------------- | ----------------------------------------------- | --------------------------------- |
+| `brand`    | Neorazz identity, primary host action | `#46d5c0` / `#2c7a52` / `rgba(70,213,192,.08)`  | `#0d9488` / `#99f6e4` / `#f0fdfa` |
+| `success`  | correct, complete, healthy            | `#3ecf8e` / `#2c7a52` / `rgba(62,207,142,.12)`  | `#15803d` / `#86efac` / `#f0fdf4` |
+| `danger`   | incorrect, destructive, failed        | `#f5604d` / `#6e2a22` / `rgba(245,96,77,.10)`   | `#b91c1c` / `#fca5a5` / `#fef2f2` |
+| `info`     | server authority, codes               | `#5b9dff` / `#2f5fb0` / `rgba(91,157,255,.12)`  | `#2563eb` / `#93c5fd` / `#eff6ff` |
+| `warning`  | time pressure, caution                | `#f08a3c` / `#b5641f` / `rgba(240,138,60,.06)`  | `#c2410c` / `#fdba74` / `#fff7ed` |
+| `sequence` | ordered steps, streaks                | `#b58af5` / `#4a3a6e` / `rgba(181,138,245,.06)` | `#7c3aed` / `#ddd6fe` / `#faf5ff` |
 
 ### Neutral roles
 
@@ -414,7 +414,8 @@ prototypes).
   the morph), the big number, and one pip per question; a deck of more than twelve
   draws a progress bar.
 - **Join**: the PIN cell and the name field take focus on arrival, and a wrong
-  PIN or a refused name shakes the field. The wordmark is the brand colour.
+  PIN or a refused name shakes the field. The wordmark is seven split-flap
+  cards in front of one brand ring, the same svg on both registers.
 
 ## The score
 
