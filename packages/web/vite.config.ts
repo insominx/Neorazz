@@ -2,13 +2,31 @@ import tailwindcss from "@tailwindcss/vite"
 import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
 import { fileURLToPath } from "url"
-import { defineConfig } from "vite"
+import { defineConfig, type Connect, type Plugin } from "vite"
 import { version } from "../../package.json"
-import { fsDeny, parseAllowedHosts } from "./vite.security"
+import { fsDeny, parseAllowedHosts, runtimeConfigScript } from "./vite.security"
 
 const configDir = fileURLToPath(new URL("../../config", import.meta.url))
 // Comma-separated host names the dev and preview servers answer to, or "*".
 const allowedHosts = parseAllowedHosts(process.env.RAZZIA_ALLOWED_HOSTS)
+
+// Serves /runtime-config.js from NEORAZZ_EMBED_ORIGINS in dev and preview, as
+// the Docker image does at start.
+const runtimeConfig = (): Plugin => {
+  const serve = (middlewares: Connect.Server) => {
+    middlewares.use("/runtime-config.js", (_req, res) => {
+      res.setHeader("Content-Type", "text/javascript")
+      res.setHeader("Cache-Control", "no-cache")
+      res.end(runtimeConfigScript(process.env.NEORAZZ_EMBED_ORIGINS))
+    })
+  }
+
+  return {
+    name: "neorazz-runtime-config",
+    configureServer: (server) => serve(server.middlewares),
+    configurePreviewServer: (server) => serve(server.middlewares),
+  }
+}
 
 export default defineConfig({
   define: {
@@ -23,6 +41,7 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    runtimeConfig(),
   ],
   resolve: {
     alias: {

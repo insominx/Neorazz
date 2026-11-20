@@ -11,6 +11,16 @@ const command = (body: Record<string, unknown>) => ({
 })
 
 describe("parseDeckCommand", () => {
+  it("reads the documented tag and the one the first decks used", () => {
+    for (const source of ["neorazz-embed", "cst426-deck"]) {
+      expect(parseDeckCommand({ source, v: 1, type: "hello" })).toEqual({
+        source,
+        v: 1,
+        type: "hello",
+      })
+    }
+  })
+
   it.each([
     command({ type: "hello" }),
     command({

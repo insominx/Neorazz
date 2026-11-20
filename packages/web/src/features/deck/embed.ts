@@ -6,10 +6,51 @@
 const EMBED_KEY = "razzia_embed"
 const EMBED_VALUE = "deck"
 
-// The live course site; keep in sync with the deck's own host setting.
-const DECK_ORIGINS = new Set(["https://426.csumb.workers.dev"])
-// Decks served on the instructor's own machine, on any port.
+// Decks served on the presenter's own machine, on any port, are always
+// allowed. Any other site that may frame and drive this page is listed by the
+// host in NEORAZZ_EMBED_ORIGINS, which `/runtime-config.js` hands to the page.
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1"])
+
+// Exact origins only (scheme, host and port, nothing after); anything else in
+// the list is ignored.
+export const parseEmbedOrigins = (raw: unknown): Set<string> => {
+  const origins = new Set<string>()
+
+  if (!Array.isArray(raw)) {
+    return origins
+  }
+
+  for (const entry of raw) {
+    if (typeof entry !== "string") {
+      continue
+    }
+
+    try {
+      const url = new URL(entry)
+
+      if (
+        (url.protocol === "https:" || url.protocol === "http:") &&
+        url.origin === entry
+      ) {
+        origins.add(entry)
+      }
+    } catch {
+      // Not an address.
+    }
+  }
+
+  return origins
+}
+
+const configuredEmbedOrigins = (): Set<string> => {
+  try {
+    return parseEmbedOrigins(window.__NEORAZZ_CONFIG__?.embedOrigins)
+  } catch {
+    return new Set()
+  }
+}
+
+const DECK_ORIGINS = configuredEmbedOrigins()
 
 type FlagStorage = Pick<Storage, "getItem" | "setItem">
 
@@ -47,8 +88,11 @@ export const detectDeckEmbed = ({
   }
 }
 
-export const isAllowedDeckOrigin = (origin: string): boolean => {
-  if (DECK_ORIGINS.has(origin)) {
+export const isAllowedDeckOrigin = (
+  origin: string,
+  allowed: ReadonlySet<string> = DECK_ORIGINS,
+): boolean => {
+  if (allowed.has(origin)) {
     return true
   }
 

@@ -3,17 +3,29 @@ import type { AskRoomView } from "@razzia/common/types/ask"
 
 import { z } from "zod"
 
-// The messages a lecture deck and this page exchange with postMessage. The
-// deck keeps its own copy of these shapes, so change both together.
+// The messages a page that embeds this one (a slide deck, a class site, any
+// web app) and this page exchange with postMessage. This file is the source of
+// the public contract: docs/embedding.md documents it and
+// public/neorazz-embed.js speaks it, so change all three together
+// (embedding-docs.test.ts checks the docs against this file).
 
+// The `source` an embedding page puts on every message.
+export const EMBED_SOURCE = "neorazz-embed"
+
+// The tag the first lecture decks used, before embedding was documented. Still
+// read, so those decks keep working; new pages use EMBED_SOURCE.
 export const DECK_SOURCE = "cst426-deck"
 
+export const EMBED_SOURCES = [EMBED_SOURCE, DECK_SOURCE] as const
+
+// The `source` on every message this page sends back. The old name stays, as
+// the other identifiers do (ADR 0008), so pages that check it keep working.
 export const BRIDGE_SOURCE = "razzia-bridge"
 
 export const PROTOCOL_VERSION = 1
 
 const envelope = {
-  source: z.literal(DECK_SOURCE),
+  source: z.enum(EMBED_SOURCES),
   v: z.literal(PROTOCOL_VERSION),
 }
 
@@ -135,6 +147,10 @@ const deckCommandSchema = z.discriminatedUnion("type", [
 
 export type DeckCommand = z.infer<typeof deckCommandSchema>
 
+// Every command this build reads, in the order above.
+export const COMMAND_TYPES: ReadonlyArray<DeckCommand["type"]> =
+  deckCommandSchema.options.map((option) => option.shape.type.value)
+
 export type RoundCommand = Extract<
   DeckCommand,
   { type: "play" | "leaderboard" | "finish" }
@@ -165,8 +181,8 @@ export const isPollStart = (data: unknown): boolean => {
     typeof data === "object" ? (data as Record<string, unknown> | null) : null
 
   return (
-    fields?.source === DECK_SOURCE &&
-    fields.v === PROTOCOL_VERSION &&
+    (EMBED_SOURCES as readonly unknown[]).includes(fields?.source) &&
+    fields?.v === PROTOCOL_VERSION &&
     fields.type === "startPoll"
   )
 }
@@ -301,15 +317,29 @@ export interface BridgeAsks {
   open: boolean
 }
 
-export type BridgeErrorCode =
-  | "needsLogin"
-  | "notLectureGame"
-  | "quizNotFound"
-  | "noPlayers"
-  | "gameExpired"
-  | "reattachFailed"
-  | "pollInvalid"
-  | "noAck"
+// A login the page needs shows as `pending: "login"` in the state, not as an
+// error.
+export const BRIDGE_ERROR_CODES = [
+  "notLectureGame",
+  "quizNotFound",
+  "noPlayers",
+  "gameExpired",
+  "reattachFailed",
+  "pollInvalid",
+  "noAck",
+] as const
+
+export type BridgeErrorCode = (typeof BRIDGE_ERROR_CODES)[number]
+
+// Every message type this page sends (`BridgeMessageBody["type"]`).
+export const MESSAGE_TYPES = [
+  "ready",
+  "status",
+  "result",
+  "error",
+  "key",
+  "inbox",
+] as const
 
 export type BridgeMessageBody =
   | { type: "inbox"; room: BridgeInbox | null }
@@ -330,7 +360,7 @@ export type BridgeMessage = BridgeMessageBody & {
 
 // Keys that move the deck. Sent on to the deck while this frame has focus,
 // so a clicker keeps working after a click into the host page.
-const FORWARDED_KEYS = new Set([
+export const FORWARDED_KEYS: ReadonlySet<string> = new Set([
   "PageDown",
   "PageUp",
   "ArrowLeft",

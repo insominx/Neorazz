@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { describe, expect, it } from "vitest"
-import { fsDeny, parseAllowedHosts } from "../../vite.security"
+import {
+  fsDeny,
+  parseAllowedHosts,
+  runtimeConfigScript,
+} from "../../vite.security"
 
 describe("vite security", () => {
   it("denies the config volume by absolute path, whatever the separators", () => {
@@ -28,5 +32,21 @@ describe("vite security", () => {
     const html = readFileSync(resolve(process.cwd(), "index.html"), "utf8")
 
     expect(html).toContain('<meta name="referrer" content="no-referrer"')
+  })
+})
+
+describe("runtimeConfigScript", () => {
+  it("lists the deck origins, trimmed and without a trailing slash", () => {
+    expect(
+      runtimeConfigScript(" https://slides.example.org/ ,, http://a.test:8080"),
+    ).toBe(
+      'window.__NEORAZZ_CONFIG__ = {"embedOrigins":["https://slides.example.org","http://a.test:8080"]}\n',
+    )
+  })
+
+  it("lists none when the variable is unset", () => {
+    expect(runtimeConfigScript(undefined)).toBe(
+      'window.__NEORAZZ_CONFIG__ = {"embedOrigins":[]}\n',
+    )
   })
 })

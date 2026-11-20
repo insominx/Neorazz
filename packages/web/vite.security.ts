@@ -26,3 +26,16 @@ export const parseAllowedHosts = (raw: string | undefined): true | string[] => {
 
   return hosts.includes("*") ? true : hosts
 }
+
+/**
+ * The dev server's /runtime-config.js, from the same NEORAZZ_EMBED_ORIGINS the
+ * Docker image reads when it starts (docker/entrypoint.sh).
+ */
+export const runtimeConfigScript = (raw: string | undefined): string => {
+  const embedOrigins = (raw ?? "")
+    .split(",")
+    .map((origin) => origin.trim().replace(/\/+$/u, ""))
+    .filter(Boolean)
+
+  return `window.__NEORAZZ_CONFIG__ = ${JSON.stringify({ embedOrigins })}\n`
+}

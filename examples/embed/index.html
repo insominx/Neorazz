@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Neorazz embed example</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0a0e16;
+        --panel: #111827;
+        --edge: #2a3654;
+        --text: #f4f8fc;
+        --muted: #9aa6bd;
+        --accent: #46d5c0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          15px/1.45 system-ui,
+          sans-serif;
+      }
+      header {
+        padding: 16px 20px 0;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 70ch;
+      }
+      code {
+        color: var(--accent);
+      }
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 16px;
+        padding: 16px 20px 20px;
+      }
+      @media (max-width: 900px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+      #stage {
+        aspect-ratio: 16 / 9;
+        border: 1px solid var(--edge);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #0f2a2a;
+      }
+      aside {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      fieldset {
+        margin: 0;
+        border: 1px solid var(--edge);
+        border-radius: 10px;
+        background: var(--panel);
+        padding: 10px 12px 12px;
+      }
+      legend {
+        color: var(--muted);
+        padding: 0 4px;
+      }
+      label {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 6px;
+      }
+      input,
+      textarea {
+        width: 100%;
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--edge);
+        border-radius: 6px;
+        padding: 6px 8px;
+        font: inherit;
+      }
+      .row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      button {
+        background: #1d2a44;
+        color: var(--text);
+        border: 1px solid var(--edge);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font: inherit;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--accent);
+      }
+      #pin {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--accent);
+      }
+      pre {
+        margin: 0;
+        max-height: 220px;
+        overflow: auto;
+        font-size: 12px;
+        white-space: pre-wrap;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Neorazz embed example</h1>
+      <p>
+        A page that frames a Neorazz host and drives it with
+        <code>neorazz-embed.js</code>. Serve this folder over http (not as a
+        file) and open it with <code>?host=</code> set to your host, for example
+        <code>?host=http://localhost:3000</code>. A page on localhost is always
+        allowed; any other site must be listed in the host's
+        <code>NEORAZZ_EMBED_ORIGINS</code>. The guide is
+        <code>docs/embedding.md</code>.
+      </p>
+    </header>
+    <main>
+      <div id="stage"></div>
+      <aside>
+        <fieldset>
+          <legend>Room</legend>
+          <div>Join at <span id="join">…</span> with the PIN</div>
+          <div id="pin">—</div>
+          <label for="quiz"
+            >Quiz id (a file name in config/quizz, without .json)</label
+          >
+          <input id="quiz" />
+          <div class="row">
+            <button data-do="open">Open room</button>
+            <button data-do="restart">Restart</button>
+            <button data-do="close">Close room</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Questions</legend>
+          <label for="question">Question (0 is the first)</label>
+          <input id="question" type="number" min="0" value="0" />
+          <div class="row">
+            <button data-do="play">Play</button>
+            <button data-do="leaderboard">Leaderboard</button>
+            <button data-do="finish">Finish</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Poll</legend>
+          <label for="poll-question">Question</label>
+          <input id="poll-question" value="What should we go over again?" />
+          <label for="poll-options">Options, one per line</label>
+          <textarea id="poll-options" rows="3">
+The first example
+The second example
+Both</textarea
+          >
+          <div class="row">
+            <button data-do="startPoll">Start</button>
+            <button data-do="closePoll">Close</button>
+            <button data-do="dismissPoll">Dismiss</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Frame</legend>
+          <div class="row">
+            <button data-do="show">Show</button>
+            <button data-do="hide">Hide</button>
+            <button data-do="slide">Clear backdrop</button>
+            <button data-do="own">Own backdrop</button>
+            <button data-do="mute">Mute</button>
+            <button data-do="unmute">Unmute</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>State</legend>
+          <pre id="state">Waiting for the host…</pre>
+        </fieldset>
+        <fieldset>
+          <legend>Messages</legend>
+          <pre id="log"></pre>
+        </fieldset>
+      </aside>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search)
+      const host = new URL(params.get("host") || "http://localhost:3000").origin
+      const $ = (id) => document.getElementById(id)
+      $("quiz").value = params.get("quiz") || ""
+      $("join").textContent = host
+
+      const log = (text) => {
+        const lines = $("log").textContent.split("\n").filter(Boolean)
+        lines.unshift(new Date().toLocaleTimeString() + "  " + text)
+        $("log").textContent = lines.slice(0, 60).join("\n")
+      }
+
+      // The client comes from the host itself, so it always matches it.
+      const script = document.createElement("script")
+      script.src = host + "/neorazz-embed.js"
+      script.onerror = () =>
+        log("Could not load " + script.src + ": is the host up?")
+      script.onload = start
+      document.head.append(script)
+
+      function start() {
+        const quiz = NeorazzEmbed.mount({ host, container: $("stage") })
+        window.quiz = quiz
+
+        quiz.on("message", (message) => {
+          if (message.type !== "status") {
+            log(JSON.stringify(message))
+          }
+        })
+
+        quiz.on("status", (state) => {
+          $("pin").textContent = state.inviteCode || "—"
+          const shown = {
+            connected: state.connected,
+            loggedIn: state.loggedIn,
+            pending: state.pending,
+            screen: state.screen,
+            question: state.question,
+            total: state.total,
+            played: state.played,
+            players: state.players,
+            finished: state.finished,
+            poll: state.poll,
+            visible: state.visible,
+          }
+          $("state").textContent = JSON.stringify(shown, null, 2)
+        })
+
+        quiz.ready.then(() => log("Host page answered: ready"))
+
+        const quizId = () => $("quiz").value.trim()
+        const actions = {
+          open: () =>
+            quiz.ensureGame({ quiz: quizId(), restart: "ifFinished" }),
+          restart: () => quiz.ensureGame({ quiz: quizId(), restart: "always" }),
+          close: () => quiz.close({ quiz: quizId() }),
+          play: () => quiz.play({ question: Number($("question").value) }),
+          leaderboard: () => quiz.leaderboard(),
+          finish: () => quiz.finish(),
+          startPoll: () =>
+            quiz.startPoll({
+              poll: {
+                id: "example-" + Date.now(),
+                question: $("poll-question").value,
+                options: $("poll-options")
+                  .value.split("\n")
+                  .map((line) => line.trim())
+                  .filter(Boolean),
+              },
+            }),
+          closePoll: () => quiz.closePoll(),
+          dismissPoll: () => quiz.dismissPoll(),
+          show: () => quiz.visibility({ visible: true }),
+          hide: () => quiz.visibility({ visible: false }),
+          slide: () => quiz.backdrop({ mode: "slide" }),
+          own: () => quiz.backdrop({ mode: "own" }),
+          mute: () => quiz.sound({ muted: true }),
+          unmute: () => quiz.sound({ muted: false }),
+        }
+
+        document.querySelectorAll("button[data-do]").forEach((button) => {
+          button.addEventListener("click", () => {
+            log("→ " + button.dataset.do)
+            actions[button.dataset.do]()
+          })
+        })
+      }
+    </script>
+  </body>
+</html>

@@ -13,12 +13,12 @@ Neorazz is a self-hosted, open-source quiz and poll platform for classrooms and 
 It began as a fork of [Razzia](https://github.com/Ralex91/Razzia) by Ralex91 and has changed enough to carry its own name. On top of Razzia's quizzes it adds:
 
 - **Lecture rooms** that hold through a whole lecture: late joiners are let in, and each question is played from its own slide ([ADR 0002](docs/adr/0002-lecture-mode-and-deck-bridge.md)).
-- **A deck bridge**, so an HTML slide deck can open a room, run questions and polls, and drive the sound from its own slides ([ADR 0005](docs/adr/0005-polls-from-a-deck.md)).
+- **Embedding**, so a slide deck, a class site or any web app can show the host screen and drive it: open a room, run questions and polls, and set the sound from its own buttons or slides ([guide](docs/embedding.md)).
 - **Polls**, sealed by default, with each vote arriving on the shared screen ([ADR 0004](docs/adr/0004-polls-as-a-room-lane.md)).
 - **A private question box** that the presenter reads from a drawer while the projector shows only a count ([ADR 0006](docs/adr/0006-asks-a-private-question-lane.md), [ADR 0007](docs/adr/0007-presenter-drawer.md)).
 - **A staged show**: a server-clocked answer reveal, a generated score, stage light, and screens spaced for phones through projectors.
 
-Razzia's code is MIT licensed, and so is Neorazz; the original copyright notice is kept in [LICENSE](LICENSE). Inside the code, package names, storage keys and the deck-bridge protocol still say `razzia`, so existing decks and saved data keep working.
+Razzia's code is MIT licensed, and so is Neorazz; the original copyright notice is kept in [LICENSE](LICENSE). Inside the code, package names, storage keys and one tag in the embedding protocol still say `razzia`, so existing decks and saved data keep working.
 
 > **Disclaimer**: Neorazz is an independent, open-source software project. It is not affiliated with, endorsed by, or sponsored by any third-party quiz platform or service. Any resemblance to other quiz platforms is purely incidental.
 
@@ -72,6 +72,8 @@ The folder will be created automatically on first run with an example quiz to ge
 An image built from this repository carries the quizzes in `config/quizz` as seed data. On every start, a quiz that is missing from the volume is added, and a seeded quiz that nobody has edited is updated when the committed version changes. A quiz you created or edited in the manager is never overwritten or deleted, even when the committed version differs (the log says so). To drop a quiz, delete it in the manager. The seeder records what it wrote in `.seed-manifest.json` beside `game.json`.
 
 The application will be available at http://localhost:3000
+
+To let your own slides or site drive this host, list their origins in `NEORAZZ_EMBED_ORIGINS` (see [Embed it in your slides or web app](#-embed-it-in-your-slides-or-web-app)).
 
 ### 🛠️ Without Docker
 
@@ -241,9 +243,9 @@ A poll is **sealed** unless you turn on **Show results while people vote** when 
 
 Whether a poll is named is part of the poll, not chosen at launch.
 
-### From a lecture deck
+### From a slide deck or another page
 
-A course deck can run a poll from its slides: the question and options are the slide's own text, sent when the instructor presses the clicker, and nothing is stored on the server first. The result is saved like any other. The shared screen shows the question and "n of m voted", and in a sealed poll each voter's name as they vote, never beside a choice; the slide shows through behind it. See [ADR 0005](docs/adr/0005-polls-from-a-deck.md).
+A page that embeds Neorazz (see [Embed it in your slides or web app](#-embed-it-in-your-slides-or-web-app)) can run a poll from its slides: the question and options are the slide's own text, sent when the instructor presses the clicker, and nothing is stored on the server first. The result is saved like any other. The shared screen shows the question and "n of m voted", and in a sealed poll each voter's name as they vote, never beside a choice; the slide shows through behind it. See [ADR 0005](docs/adr/0005-polls-from-a-deck.md).
 
 ### Where things are kept
 
@@ -253,6 +255,29 @@ A course deck can run a poll from its slides: the question and options are the s
 Keep both folders with `config/game.json` and your quizzes when you copy, back up or mount a configuration. The Docker image does not ship any polls.
 
 An open poll lives in the server's memory, so restarting the server loses it along with any live room: do not deploy during a class. Editing or deleting a poll does not change one that is open or a result already saved. The design is recorded in [ADR 0004](docs/adr/0004-polls-as-a-room-lane.md).
+
+## 🖼️ Embed it in your slides or web app
+
+The host screen can sit inside your own page (a slide deck, a class site, any web app), and that page can drive it: open a room, play a question from the slide that asks it, run a poll, show the standings. Players join on their phones as usual.
+
+1. **Allow your site.** Set `NEORAZZ_EMBED_ORIGINS` on the host to your page's origin, for example `https://slides.example.org` (several are separated by commas), and restart it. Pages on `localhost` and `127.0.0.1` are always allowed.
+2. **Add the client.** Every host serves it at `/neorazz-embed.js`:
+
+   ```html
+   <div id="quiz" style="width: 100%; aspect-ratio: 16 / 9"></div>
+   <script src="https://quiz.example.org/neorazz-embed.js"></script>
+   <script>
+     const quiz = NeorazzEmbed.mount({
+       host: "https://quiz.example.org",
+       container: document.getElementById("quiz"),
+     })
+     quiz.ensureGame({ quiz: "my-quiz" })
+   </script>
+   ```
+
+3. **Drive it** from your buttons or slides: `quiz.play({ question: 0 })`, `quiz.startPoll({ poll })`, `quiz.leaderboard()`, `quiz.finish()`. The presenter types the manager password inside the frame once.
+
+To try it locally, run `pnpm run dev`, serve [`examples/embed/`](examples/embed/) with any static server, and open it with `?host=http://localhost:3000`. The full guide, with the protocol, a slide-deck recipe and troubleshooting, is [docs/embedding.md](docs/embedding.md).
 
 ## 📝 Contributing
 
