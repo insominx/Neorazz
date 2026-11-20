@@ -2,7 +2,7 @@ import type { PollSnapshot } from "@razzia/common/types/poll"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
 import HostPollOverlay from "@razzia/web/features/poll/components/HostPollOverlay"
 import { usePollStore } from "@razzia/web/features/poll/stores/poll"
-import { act, cleanup, render } from "@testing-library/react"
+import { act, cleanup, fireEvent, render } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 // While a poll is open the host's screen shows each vote arriving: the name
@@ -128,7 +128,8 @@ describe("HostPollOverlay arrivals", () => {
     const source = document.querySelector(".rz-arrival-number")
 
     expect(source).toHaveTextContent(/^12$/)
-    expect(source?.querySelectorAll("[data-poll-pulse]")).toHaveLength(3)
+    // One ring from the first vote, and three, not eleven, from the jump.
+    expect(source?.querySelectorAll("[data-poll-pulse]")).toHaveLength(4)
     expect(document.querySelector("[data-poll-voted]")).toHaveTextContent(
       'poll:votes:{"count":12}',
     )
@@ -146,6 +147,65 @@ describe("HostPollOverlay arrivals", () => {
 
     expect(rings).toHaveLength(2)
     expect(rings[0]).toBe(first)
+  })
+
+  it("lets each ring finish instead of cutting the oldest when more votes land", () => {
+    render(<HostPollOverlay />)
+    show(open())
+    vote(1, "Ada")
+    const first = document.querySelector("[data-poll-pulse]")
+
+    for (let total = 2; total <= 8; total += 1) {
+      vote(total)
+    }
+
+    const rings = document.querySelectorAll("[data-poll-pulse]")
+
+    expect(rings).toHaveLength(8)
+    expect(rings[0]).toBe(first)
+
+    // With eight spreading, a ninth vote sends no ring rather than cut one.
+    vote(9)
+    expect(document.querySelectorAll("[data-poll-pulse]")).toHaveLength(8)
+    expect(document.querySelector("[data-poll-pulse]")).toBe(first)
+  })
+
+  it("sends no late rings for votes that came while calm", () => {
+    mocks.calm = true
+    const { rerender } = render(<HostPollOverlay />)
+    show(open())
+    vote(1, "Ada")
+    vote(2, "Grace")
+
+    mocks.calm = false
+    rerender(<HostPollOverlay />)
+    expect(document.querySelectorAll("[data-poll-pulse]")).toHaveLength(0)
+
+    vote(3, "Linus")
+    expect(document.querySelectorAll("[data-poll-pulse]")).toHaveLength(1)
+  })
+
+  it("removes a ring when its animation ends, or after its time if it never runs", () => {
+    render(<HostPollOverlay />)
+    show(open())
+    vote(1, "Ada")
+    vote(2, "Grace")
+
+    const [first] = document.querySelectorAll("[data-poll-pulse]")
+
+    act(() => {
+      fireEvent.animationEnd(first)
+    })
+    expect(document.querySelectorAll("[data-poll-pulse]")).toHaveLength(1)
+    expect(first.isConnected).toBe(false)
+
+    act(() => {
+      vi.advanceTimersByTime(3000)
+    })
+    expect(document.querySelectorAll("[data-poll-pulse]")).toHaveLength(0)
+
+    vote(3, "Linus")
+    expect(document.querySelectorAll("[data-poll-pulse]")).toHaveLength(1)
   })
 
   it("raises the room's light with the share that has voted", () => {

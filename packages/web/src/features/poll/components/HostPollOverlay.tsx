@@ -9,21 +9,84 @@ import ArrivalSpotlight from "@razzia/web/features/poll/components/ArrivalSpotli
 import PollBars from "@razzia/web/features/poll/components/PollBars"
 import PollFrame from "@razzia/web/features/poll/components/PollFrame"
 import { useHeartbeat } from "@razzia/web/features/poll/hooks/use-heartbeat"
-import { usePollStore } from "@razzia/web/features/poll/stores/poll"
+import {
+  type PollArrival,
+  usePollStore,
+} from "@razzia/web/features/poll/stores/poll"
 import { emitWithAck } from "@razzia/web/features/poll/utils/emit-with-ack"
+import { splitVotes } from "@razzia/web/features/poll/utils/split-votes"
 import {
   QUESTION_CLASSES,
   questionTier,
 } from "@razzia/web/features/poll/utils/type-tier"
 import clsx from "clsx"
-import { useLayoutEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
 
 const QUESTION_ID = "poll-question"
 
-// The rings of light still spreading from the count.
-const PULSES_SHOWN = 3
+// The rings of light from the vote number: at most this many born from one
+// tally (a jump of several votes), and at most this many spreading at once.
+// A ring lives out its whole animation; when too many are spreading, a new one
+// is not born, rather than an old one cut off part-way.
+const RINGS_PER_TALLY = 3
+const RINGS_SPREADING = 8
+// How long a ring may stay if its animation never ends (reduced motion turns
+// it off): longer than the 1400ms ring.
+const RING_LIFE_MS = 3_000
+
+/**
+ * The rings spreading now, by arrival `seq`, and how a ring says it is done.
+ * `newest` is the open poll's newest arrival (0 when none, or not open). A
+ * ring is born only for an arrival that comes while `ringing` (not calm); none
+ * is kept or drawn while it is off, and none is born late for an arrival that
+ * came while it was off.
+ */
+const useArrivalRings = (
+  arrivals: PollArrival[],
+  newest: number,
+  ringing: boolean,
+) => {
+  const [rings, setRings] = useState<number[]>([])
+  const [seen, setSeen] = useState(newest)
+
+  // Adjusted while rendering (React's pattern for state that follows props),
+  // so a ring is drawn in the same frame as the vote that sends it.
+  if (newest !== seen) {
+    setSeen(newest)
+
+    // Fewer than seen: the poll closed, or a new one began again from 1.
+    const kept = newest > seen ? rings : []
+    const room = Math.max(0, RINGS_SPREADING - kept.length)
+    const born =
+      ringing && newest > seen
+        ? arrivals
+            .filter(({ seq }) => seq > seen)
+            .slice(-RINGS_PER_TALLY)
+            .map(({ seq }) => seq)
+        : []
+
+    setRings([
+      ...kept,
+      ...born.slice(born.length - Math.min(room, born.length)),
+    ])
+  } else if (!ringing && rings.length > 0) {
+    setRings([])
+  }
+
+  const done = useCallback((seq: number) => {
+    setRings((spreading) => spreading.filter((ring) => ring !== seq))
+  }, [])
+
+  return { rings: ringing ? rings : [], done }
+}
 
 // What the line above the question says about who can see the votes. On the
 // manager's own screen the host sees names beside the votes of a named poll.
@@ -45,8 +108,35 @@ const privacyKey = (anonymous: boolean) => {
  * layout offsets (whole pixels) trued up against where it was drawn, so
  * pinning it moves nothing.
  */
-const ArrivalPulse = () => {
+const ArrivalPulse = ({ onDone }: { onDone: () => void }) => {
   const ref = useRef<HTMLSpanElement>(null)
+
+  // The latest callback, so the ring's one timer is not reset by a render.
+  const done = useRef(onDone)
+
+  useLayoutEffect(() => {
+    done.current = onDone
+  })
+
+  // Done when its animation ends, or after its time if it never runs.
+  useEffect(() => {
+    const ring = ref.current
+    const finish = (event: AnimationEvent) => {
+      if (event.target === ring) {
+        done.current()
+      }
+    }
+    const timer = setTimeout(() => {
+      done.current()
+    }, RING_LIFE_MS)
+
+    ring?.addEventListener("animationend", finish)
+
+    return () => {
+      clearTimeout(timer)
+      ring?.removeEventListener("animationend", finish)
+    }
+  }, [])
 
   useLayoutEffect(() => {
     const ring = ref.current
@@ -161,6 +251,8 @@ const HostPollOverlay = () => {
       ? total >= connectedPlayers
       : false
   const beats = useHeartbeat(open && total > 0 && !allIn, share)
+  const lastArrival = open ? (arrivals.at(-1)?.seq ?? 0) : 0
+  const { rings, done } = useArrivalRings(arrivals, lastArrival, open && !calm)
 
   if (!snapshot) {
     return null
@@ -169,18 +261,12 @@ const HostPollOverlay = () => {
   const { question, options, anonymous } = snapshot
   const sealed = !closed && snapshot.counts === undefined
   const counts = snapshot.counts ?? options.map(() => 0)
-  const pulses = open && !calm ? arrivals.slice(-PULSES_SHOWN) : []
-  const lastArrival = open ? (arrivals.at(-1)?.seq ?? 0) : 0
   const flash = lastArrival > 0 && !calm ? "rz-arrival-flash" : undefined
-  // The vote line split around its number, so the rings can leave the number
-  // in every language's word order. A translation that writes no number keeps
-  // the whole line as the rings' source.
-  const votesText = t("poll:votes", { count: total })
-  const numberAt = votesText.indexOf(String(total))
-  const numberEnd = numberAt + String(total).length
-  const votesBefore = numberAt < 0 ? "" : votesText.slice(0, numberAt)
-  const votesNumber = numberAt < 0 ? votesText : String(total)
-  const votesAfter = numberAt < 0 ? "" : votesText.slice(numberEnd)
+  const {
+    before: votesBefore,
+    number: votesNumber,
+    after: votesAfter,
+  } = splitVotes(t, total)
   // The room's light: the share that has voted while open, back to its rest
   // once closed, and none for a result shown again.
   let lift: number | undefined = undefined
@@ -276,8 +362,8 @@ const HostPollOverlay = () => {
                   </span>
                 )}
                 <span className="rz-arrival-number">
-                  {pulses.map(({ seq }) => (
-                    <ArrivalPulse key={seq} />
+                  {rings.map((seq) => (
+                    <ArrivalPulse key={seq} onDone={() => done(seq)} />
                   ))}
                   <span
                     key={lastArrival}
