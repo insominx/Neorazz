@@ -63,7 +63,9 @@ describe("HostPollOverlay with a sealed poll", () => {
 
     expect(screen.getByText("Pizza")).toBeVisible()
     expect(screen.getByText("Soup")).toBeVisible()
-    expect(screen.getByText('poll:votes:{"count":2}')).toBeVisible()
+    expect(document.querySelector("[data-poll-voted]")).toHaveTextContent(
+      'poll:votes:{"count":2}',
+    )
     expect(screen.getByText("poll:host.sealedNote")).toBeVisible()
     expect(counts()).toHaveLength(0)
     expect(document.querySelector("[data-poll-names]")).toBeNull()
@@ -78,7 +80,9 @@ describe("HostPollOverlay with a sealed poll", () => {
       usePollStore.getState().setPlayerTotal(5)
     })
 
-    expect(screen.getByText('poll:votes:{"count":4}')).toBeVisible()
+    expect(document.querySelector("[data-poll-voted]")).toHaveTextContent(
+      'poll:votes:{"count":4}',
+    )
     expect(document.querySelector("[data-poll-voted]")).not.toHaveTextContent(
       "connected",
     )
@@ -92,7 +96,9 @@ describe("HostPollOverlay with a sealed poll", () => {
       usePollStore.getState().applyTally({ pollId: "lunch", total: 3 })
     })
 
-    expect(screen.getByText('poll:votes:{"count":3}')).toBeVisible()
+    expect(document.querySelector("[data-poll-voted]")).toHaveTextContent(
+      'poll:votes:{"count":3}',
+    )
     expect(counts()).toHaveLength(0)
   })
 

@@ -1551,19 +1551,21 @@ html[data-stage] .rz-tile-badge svg {
   }
 }
 
-/* Each arrival sends a ring of light out from the count, behind the text and
-   the option tiles, and the count itself flashes.
+/* Each arrival sends a ring of light out from the vote number, behind the text
+   and the option tiles; the number pops and the line flashes.
 
-   The ring grows to 100rem inside the poll's scrolling <main>. Nothing between
-   it and the poll frame is positioned, so its containing block lies outside
-   <main>: it neither adds scroll height there (a stray scrollbar) nor is
-   clipped by it. It sits at its static position, the zero-size anchor centred
-   on the count's line, instead of top/left offsets. */
-.rz-arrival-pulse-anchor {
-  display: block;
-  width: 0;
-  height: 0;
-  margin-inline: auto;
+   The ring sits inside the poll's scrolling <main>. Nothing between it and the
+   poll frame is positioned or transformed, so its containing block lies
+   outside <main>: it neither adds scroll height there (a stray scrollbar) nor
+   is clipped by it. It is born at its static position, which the number's
+   inline-flex box centres on the number; `ArrivalPulse` then pins it to that
+   spot (left/top plus a -50% translate) so it stays put while the line
+   changes. The popping number is a sibling of the rings, never their
+   ancestor: a transform there would capture and scale them. */
+.rz-arrival-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .rz-arrival-pulse {
@@ -1571,22 +1573,29 @@ html[data-stage] .rz-tile-badge svg {
   z-index: -1;
   width: 2rem;
   height: 2rem;
-  translate: -50% calc(-50% + 0.5lh);
-  border: 0.375rem solid var(--rz-brand);
+  border: 0.25rem solid var(--rz-brand);
   border-radius: 9999px;
   pointer-events: none;
+  filter: blur(3px);
   animation: rz-arrival-pulse 1400ms var(--rz-ease-calm) both;
 }
 
+/* A soft, small ring, faint before it has spread far. */
 @keyframes rz-arrival-pulse {
-  from {
+  0% {
     width: 2rem;
     height: 2rem;
-    opacity: 0.45;
+    opacity: 0.5;
   }
-  to {
-    width: 100rem;
-    height: 100rem;
+  /* Size eases once, from first to last. The fade's second stretch starts
+     as still as the first one ends, so the fade has no kink. */
+  45% {
+    opacity: 0.05;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  100% {
+    width: 13rem;
+    height: 13rem;
     opacity: 0;
   }
 }
@@ -1603,6 +1612,17 @@ html[data-stage] .rz-tile-badge svg {
   }
   to {
     transform: none;
+  }
+}
+
+/* The words around the number flash with it, without moving. */
+.rz-arrival-flash {
+  animation: rz-arrival-flash 650ms var(--rz-ease-calm) both;
+}
+
+@keyframes rz-arrival-flash {
+  from {
+    color: var(--rz-brand);
   }
 }
 
@@ -1649,6 +1669,7 @@ html[data-stage] .rz-tile-badge svg {
   .rz-arrival-trail > span,
   .rz-arrival-pulse,
   .rz-arrival-count,
+  .rz-arrival-flash,
   .rz-breath {
     animation: none !important;
   }

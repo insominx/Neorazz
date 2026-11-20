@@ -111,9 +111,41 @@ describe("HostPollOverlay arrivals", () => {
       "Ada",
     )
     expect(document.querySelectorAll("[data-poll-pulse]")).toHaveLength(1)
-    expect(document.querySelector(".rz-arrival-count")).toHaveTextContent(
+    expect(document.querySelector("[data-poll-voted]")).toHaveTextContent(
       'poll:votes:{"count":1}',
     )
+    expect(document.querySelector(".rz-arrival-count")).toHaveTextContent(/^1$/)
+  })
+
+  // The mocked line reads `poll:votes:{"count":N}`, so its number is mid-line,
+  // as in a language that does not put it first.
+  it("sends the ring from the number itself, wherever the line puts it", () => {
+    render(<HostPollOverlay />)
+    show(open())
+    vote(1, "Ada")
+    vote(12, "Grace")
+
+    const source = document.querySelector(".rz-arrival-number")
+
+    expect(source).toHaveTextContent(/^12$/)
+    expect(source?.querySelectorAll("[data-poll-pulse]")).toHaveLength(3)
+    expect(document.querySelector("[data-poll-voted]")).toHaveTextContent(
+      'poll:votes:{"count":12}',
+    )
+  })
+
+  it("keeps a ring that is still spreading when the next vote lands", () => {
+    render(<HostPollOverlay />)
+    show(open())
+    vote(1, "Ada")
+    const first = document.querySelector("[data-poll-pulse]")
+
+    vote(2, "Grace")
+
+    const rings = document.querySelectorAll("[data-poll-pulse]")
+
+    expect(rings).toHaveLength(2)
+    expect(rings[0]).toBe(first)
   })
 
   it("raises the room's light with the share that has voted", () => {

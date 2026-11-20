@@ -16,7 +16,7 @@ import {
   questionTier,
 } from "@razzia/web/features/poll/utils/type-tier"
 import clsx from "clsx"
-import { useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import toast from "react-hot-toast"
 import { useTranslation } from "react-i18next"
 
@@ -38,6 +38,64 @@ const privacyKey = (anonymous: boolean) => {
 }
 
 /**
+ * One ring of light from the vote number. It is born where the number's box
+ * centres it, then stays on that spot for its whole life: the line re-centres
+ * as its text changes ("1 vote" to "2 votes", 9 to 10), and a ring that moved
+ * with it would jump. It is pinned before the first paint, from its own
+ * layout offsets (whole pixels) trued up against where it was drawn, so
+ * pinning it moves nothing.
+ */
+const ArrivalPulse = () => {
+  const ref = useRef<HTMLSpanElement>(null)
+
+  useLayoutEffect(() => {
+    const ring = ref.current
+
+    if (!ring?.offsetParent) {
+      return
+    }
+
+    const born = ring.getBoundingClientRect()
+    let left = ring.offsetLeft + ring.offsetWidth / 2
+    let top = ring.offsetTop + ring.offsetHeight / 2
+    const pin = () => {
+      ring.style.left = `${left}px`
+      ring.style.top = `${top}px`
+    }
+
+    ring.style.translate = "-50% -50%"
+    pin()
+
+    // The screen may be drawn scaled; offsets are in the ring's own pixels.
+    const pinned = ring.getBoundingClientRect()
+    const scale = ring.offsetWidth ? pinned.width / ring.offsetWidth : 1
+
+    if (scale > 0) {
+      left += (born.left - pinned.left) / scale
+      top += (born.top - pinned.top) / scale
+      pin()
+    }
+
+    // Unpinned again on unmount, so a second run (React's strict mode)
+    // measures the ring where the number's box puts it.
+    return () => {
+      ring.style.removeProperty("left")
+      ring.style.removeProperty("top")
+      ring.style.removeProperty("translate")
+    }
+  }, [])
+
+  return (
+    <span
+      ref={ref}
+      aria-hidden="true"
+      data-poll-pulse
+      className="rz-arrival-pulse"
+    />
+  )
+}
+
+/**
  * The room's poll, on the host's screen: the question and how many have voted
  * while it is open (and, when the poll is live, the votes as they come in),
  * then, when the host closes it, the result, until the host says Done. The quiz
@@ -48,8 +106,8 @@ const privacyKey = (anonymous: boolean) => {
  *
  * While it is open the room hears and sees each vote arrive: the voter's name
  * lands under the options (`ArrivalSpotlight`; an anonymous live poll shows
- * no name), a ring of light leaves the count, the room's light rises with the
- * share that has voted, and a heartbeat quickens until everyone is in.
+ * no name), a ring of light leaves the vote number, the room's light rises
+ * with the share that has voted, and a heartbeat quickens until everyone is in.
  *
  * In a deck's frame this screen is the projector. Who voted for what is never
  * drawn there, even for a named poll (it is saved in the result and shown on
@@ -113,6 +171,16 @@ const HostPollOverlay = () => {
   const counts = snapshot.counts ?? options.map(() => 0)
   const pulses = open && !calm ? arrivals.slice(-PULSES_SHOWN) : []
   const lastArrival = open ? (arrivals.at(-1)?.seq ?? 0) : 0
+  const flash = lastArrival > 0 && !calm ? "rz-arrival-flash" : undefined
+  // The vote line split around its number, so the rings can leave the number
+  // in every language's word order. A translation that writes no number keeps
+  // the whole line as the rings' source.
+  const votesText = t("poll:votes", { count: total })
+  const numberAt = votesText.indexOf(String(total))
+  const numberEnd = numberAt + String(total).length
+  const votesBefore = numberAt < 0 ? "" : votesText.slice(0, numberAt)
+  const votesNumber = numberAt < 0 ? votesText : String(total)
+  const votesAfter = numberAt < 0 ? "" : votesText.slice(numberEnd)
   // The room's light: the share that has voted while open, back to its rest
   // once closed, and none for a result shown again.
   let lift: number | undefined = undefined
@@ -193,29 +261,36 @@ const HostPollOverlay = () => {
             data-poll-voted
             className="text-text-muted stage:text-[2.6875rem] text-lg font-semibold"
           >
-            {pulses.length > 0 && (
-              <span aria-hidden="true" className="rz-arrival-pulse-anchor">
-                {pulses.map(({ seq }) => (
-                  <span
-                    key={seq}
-                    data-poll-pulse
-                    className="rz-arrival-pulse"
-                  />
-                ))}
-              </span>
-            )}
             {total === 0 && closed ? (
               t("poll:noOneVoted")
             ) : (
               <>
-                <span
-                  key={lastArrival}
-                  className={clsx(
-                    lastArrival > 0 && !calm && "rz-arrival-count",
-                  )}
-                >
-                  {t("poll:votes", { count: total })}
+                {/* Each arrival flashes the line and pops its number. Only
+                    the words and the number are keyed to the arrival; the
+                    rings beside the number are not, so a new vote never
+                    restarts a ring already spreading, and no ring sits
+                    inside the number's scaling. */}
+                {votesBefore && (
+                  <span key={`before-${lastArrival}`} className={flash}>
+                    {votesBefore}
+                  </span>
+                )}
+                <span className="rz-arrival-number">
+                  {pulses.map(({ seq }) => (
+                    <ArrivalPulse key={seq} />
+                  ))}
+                  <span
+                    key={lastArrival}
+                    className={clsx(flash && "rz-arrival-count")}
+                  >
+                    {votesNumber}
+                  </span>
                 </span>
+                {votesAfter && (
+                  <span key={`after-${lastArrival}`} className={flash}>
+                    {votesAfter}
+                  </span>
+                )}
                 {!closed && isConnected && connectedPlayers !== null && (
                   <> · {t("game:connected", { count: connectedPlayers })}</>
                 )}
