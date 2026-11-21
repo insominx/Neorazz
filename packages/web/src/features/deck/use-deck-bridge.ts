@@ -837,10 +837,13 @@ export const useDeckBridge = () => {
   }, [visible, review])
 
   // After a lecture's podium the phones show their final place only while the
-  // deck shows this page (its standings face): moving on sends them to the
-  // quiz-over wait, coming back shows their place again (CST-426 task 0170).
+  // deck shows this page on its standings face (not while reviewing an earlier
+  // question or poll, or while a post-podium poll is up): moving on sends them
+  // to the quiz-over wait, coming back shows their place again (CST-426 task 0170).
   // Sent on each change, and again for a room this page attaches to.
   const lectureFinished = lecture?.finished === true
+  const standingsShown =
+    visible && review === null && !pollShowing && pollReview === null
   const standingsSent = useRef<string | null>(null)
 
   useEffect(() => {
@@ -850,15 +853,18 @@ export const useDeckBridge = () => {
       return
     }
 
-    const key = `${gameId}:${visible}`
+    const key = `${gameId}:${standingsShown}`
 
     if (standingsSent.current === key) {
       return
     }
 
     standingsSent.current = key
-    socket.emit(EVENTS.MANAGER.SHOW_STANDINGS, { gameId, shown: visible })
-  }, [attached, gameId, lectureFinished, visible, socket])
+    socket.emit(EVENTS.MANAGER.SHOW_STANDINGS, {
+      gameId,
+      shown: standingsShown,
+    })
+  }, [attached, gameId, lectureFinished, standingsShown, socket])
 
   // A result shown again belongs to its room: a new game, or a page no longer
   // attached, takes it away.
@@ -909,11 +915,17 @@ export const useDeckBridge = () => {
     setConfig(data)
   })
 
-  // Also the answer to a create the server refused after a restart wiped the
-  // login: the host logs in again, then the create goes out again.
+  // Also the answer to a create or reconnect the server refused after a
+  // restart wiped the login: drop the stale room state so the host logs in
+  // again and opens a fresh lobby.
   useEvent(EVENTS.MANAGER.UNAUTHORIZED, () => {
     createSentAt.current = null
     abandonedCreateAt.current = null
+    stopRetry()
+    setAttached(false)
+    setPlayers(0)
+    useManagerStore.getState().reset()
+    usePollStore.getState().reset()
     setLoggedIn(false)
   })
 

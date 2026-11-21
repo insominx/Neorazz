@@ -10,7 +10,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 // (a reused bar would run its width transition down to 0, and look as if the
 // new poll already had votes).
 
-const mocks = vi.hoisted(() => ({ embed: true }))
+const mocks = vi.hoisted(() => ({
+  embed: true,
+  cue: vi.fn<(_cue: { cue: string }) => void>(),
+}))
+
+vi.mock("@razzia/web/features/game/audio/score", () => ({
+  score: { cue: mocks.cue },
+}))
 
 vi.mock("@razzia/web/features/deck/embed", () => ({
   get IS_DECK_EMBED() {
@@ -93,6 +100,7 @@ const widths = () => bars().map((bar) => bar.style.width)
 describe("the host's bars across a switch to another poll", () => {
   beforeEach(() => {
     mocks.embed = true
+    mocks.cue.mockClear()
     usePollStore.getState().reset()
     useManagerStore.getState().reset()
     useManagerStore.setState({ gameId: "g1", hostControls: false })
@@ -157,5 +165,58 @@ describe("the host's bars across a switch to another poll", () => {
     for (const bar of before) {
       expect(bar.isConnected).toBe(false)
     }
+  })
+
+  it("resets the arrival spotlight, trail and sequence when switching directly from a named poll to an anonymous one", () => {
+    render(<HostPollOverlay />)
+    apply({
+      ...grades,
+      anonymous: false,
+      counts: [0, 0, 0],
+      total: 0,
+    })
+
+    act(() => {
+      usePollStore.getState().applyTally({
+        pollId: "grade-band",
+        counts: [1, 0, 0],
+        total: 1,
+        arrived: "Ada",
+      })
+      usePollStore.getState().applyTally({
+        pollId: "grade-band",
+        counts: [1, 1, 0],
+        total: 2,
+        arrived: "Grace",
+      })
+    })
+    expect(document.querySelector("[data-poll-arrivals]")).toHaveTextContent(
+      "Ada",
+    )
+
+    // Switch straight to an anonymous open poll (e.g. close+start coalesced).
+    mocks.cue.mockClear()
+    apply(agents)
+
+    expect(document.querySelector("[data-poll-trail]")).toBeNull()
+    expect(document.querySelector("[data-arrival]")).toBeNull()
+    expect(document.querySelector("[data-poll-arrivals]")).not.toHaveTextContent(
+      "Ada",
+    )
+
+    // First vote (seq 1) on the new poll must trigger spotlight + vote chime,
+    // not be dropped behind the previous poll's higher seen sequence.
+    act(() => {
+      usePollStore.getState().applyTally({
+        pollId: "agent-experience",
+        counts: [0, 0, 1, 0],
+        total: 1,
+      })
+    })
+
+    expect(document.querySelector('[data-arrival="vote"]')).not.toBeNull()
+    expect(mocks.cue).toHaveBeenCalledWith(
+      expect.objectContaining({ cue: "vote" }),
+    )
   })
 })

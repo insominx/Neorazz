@@ -365,6 +365,23 @@ describe("manager game route leave guard", () => {
     })
   })
 
+  it("clears state and returns to /manager when the server reports unauthorized (e.g. restart)", async () => {
+    host(STATUS.SELECT_ANSWER, { players: [player] as never })
+    await mount()
+
+    act(() => {
+      mocks.handlers.get(EVENTS.MANAGER.UNAUTHORIZED)?.()
+    })
+
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: "/manager",
+      replace: true,
+      ignoreBlocker: true,
+    })
+    expect(useManagerStore.getState().gameId).toBeNull()
+    expect(useQuestionStore.getState().questionStates).toBeNull()
+  })
+
   it("bypasses the blocker when a finished game is left with Next", async () => {
     host(STATUS.FINISHED, { players: [player] as never })
     await mount()

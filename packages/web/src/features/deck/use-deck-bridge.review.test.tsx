@@ -267,6 +267,58 @@ describe("useDeckBridge showing a closed poll again, and naming its targets", ()
     ])
   })
 
+  it("keeps finished phones on the wait when revisiting a closed poll or played question", () => {
+    const standings = () =>
+      mocks.socket.emit.mock.calls
+        .filter(([event]) => event === EVENTS.MANAGER.SHOW_STANDINGS)
+        .map(([, payload]) => payload as { gameId: string; shown: boolean })
+
+    renderHook(() => {
+      useDeckBridge()
+    })
+    sendCommand({ type: "hello" })
+    attach(lectureState({ finished: true, pollsDone: [closed("grades", [2, 1])] }))
+    act(() => {
+      useManagerStore.getState().setStatus(STATUS.SHOW_RESPONSES, {
+        questionNumber: 2,
+        question: "Q2",
+        responses: { 0: 1 },
+        solutions: [0],
+        answers: ["a", "b"],
+      })
+      useManagerStore.getState().setStatus(STATUS.FINISHED, {
+        subject: "Moon",
+        top: [],
+      })
+    })
+    mocks.socket.emit.mockClear()
+
+    // Revisiting a closed poll makes the frame visible while pollReview is set:
+    // standings are NOT showing, so phones must stay on the quiz-over wait.
+    sendCommand({ type: "reviewPoll", id: "grades" })
+    sendCommand({ type: "visibility", visible: true })
+    expect(standings()).toEqual([])
+
+    // Returning to the standings face clears the poll review and shows standings.
+    sendCommand({ type: "reviewPoll", id: null })
+    expect(standings()).toEqual([{ gameId: "g-1", shown: true }])
+
+    // Jumping to a played question review hides standings again.
+    sendCommand({ type: "review", question: 1 })
+    expect(standings()).toEqual([
+      { gameId: "g-1", shown: true },
+      { gameId: "g-1", shown: false },
+    ])
+
+    // Ending the review while still visible brings standings back.
+    sendCommand({ type: "review", question: null })
+    expect(standings()).toEqual([
+      { gameId: "g-1", shown: true },
+      { gameId: "g-1", shown: false },
+      { gameId: "g-1", shown: true },
+    ])
+  })
+
   it("shows nothing for a poll that did not close here, or before it is attached", () => {
     renderHook(() => {
       useDeckBridge()

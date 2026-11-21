@@ -64,7 +64,9 @@ const PlayerPollOverlay = () => {
     // not land. Put the pick back unless the player has already tapped again,
     // and ask the server what it really holds.
     if (outcome !== "closed") {
-      if (usePollStore.getState().snapshot?.mine === option) {
+      const latest = usePollStore.getState().snapshot
+
+      if (latest?.pollId === pollId && latest.mine === option) {
         usePollStore.getState().setMine(before)
       }
 

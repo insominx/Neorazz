@@ -232,6 +232,35 @@ describe("PlayerPollOverlay", () => {
     expect(usePollStore.getState().snapshot?.mine).toBe(2)
   })
 
+  it("does not roll back a pick on a new poll when an earlier poll's vote fails late", async () => {
+    const acks: Ack[] = []
+
+    mocks.emit.mockImplementation(
+      (event: string, _payload: unknown, ack?: Ack) => {
+        if (event === EVENTS.POLL.VOTE && ack) {
+          acks.push(ack)
+        }
+      },
+    )
+    render(<PlayerPollOverlay />)
+    show(open({ pollId: "grades", mine: null }))
+
+    fireEvent.click(choiceButton(1))
+
+    // Host moves to the next poll and the student taps the same option index.
+    show(open({ pollId: "agents", mine: null }))
+    fireEvent.click(choiceButton(1))
+    expect(usePollStore.getState().snapshot?.mine).toBe(1)
+
+    await act(async () => {
+      acks[0]("invalid")
+      await Promise.resolve()
+    })
+
+    expect(usePollStore.getState().snapshot?.pollId).toBe("agents")
+    expect(usePollStore.getState().snapshot?.mine).toBe(1)
+  })
+
   it("gives up on a vote the server never answers, and asks what it holds", async () => {
     vi.useFakeTimers()
     render(<PlayerPollOverlay />)

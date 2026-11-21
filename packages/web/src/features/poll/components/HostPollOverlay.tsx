@@ -408,7 +408,16 @@ const HostPollOverlay = () => {
           settled={review !== null}
         />
 
-        {open && <ArrivalSpotlight allIn={allIn} room={room} />}
+        {/* Keyed by the poll: a direct switch to another open poll resets
+            the spotlight, its trail and its seen sequence number. Prefixed so
+            it never shares a React key with sibling PollBars. */}
+        {open && (
+          <ArrivalSpotlight
+            key={live ? `arrivals:${live.pollId}` : undefined}
+            allIn={allIn}
+            room={room}
+          />
+        )}
       </main>
     </PollFrame>
   )

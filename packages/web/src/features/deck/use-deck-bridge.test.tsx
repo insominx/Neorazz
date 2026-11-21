@@ -871,6 +871,40 @@ describe("useDeckBridge", () => {
     })
   })
 
+  it("drops attached room state and stops reattach retries when unauthorized after a server restart", () => {
+    vi.useFakeTimers()
+    stubStorage()
+    mocks.router.pathname = "/party/manager/g-1"
+    renderHook(() => {
+      useDeckBridge()
+    })
+    sendCommand({ type: "hello" })
+    fire(EVENTS.MANAGER.CONFIG, config)
+    attachTo({ name: STATUS.SHOW_ROOM, data: { inviteCode: "123456" } })
+    fire(EVENTS.GAME.TOTAL_PLAYERS, 5)
+    fire(EVENTS.GAME.RESET, "errors:game.managerAlreadyConnected")
+    expect(lastState()).toMatchObject({ reattaching: true, players: 5 })
+
+    fire(EVENTS.MANAGER.UNAUTHORIZED)
+
+    expect(lastState()).toMatchObject({
+      loggedIn: false,
+      reattaching: false,
+      gameId: null,
+      players: 0,
+    })
+    expect(useManagerStore.getState().config).toBeNull()
+
+    mocks.socket.emit.mockClear()
+    act(() => {
+      vi.advanceTimersByTime(20_000)
+    })
+    expect(mocks.socket.emit).not.toHaveBeenCalledWith(
+      EVENTS.MANAGER.RECONNECT,
+      expect.anything(),
+    )
+  })
+
   it("keeps asking to get back in while the server holds the old connection", () => {
     vi.useFakeTimers()
     stubStorage()

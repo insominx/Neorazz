@@ -161,6 +161,16 @@ const ManagerGamePage = () => {
     toast.error(t(message), { id: message })
   })
 
+  // The server no longer knows this login (for instance after a restart wiped
+  // active sessions and games): clear the dead room and return to the password
+  // page, bypassing the leave prompt.
+  useEvent(EVENTS.MANAGER.UNAUTHORIZED, () => {
+    navigate({ to: "/manager", replace: true, ignoreBlocker: true })
+    reset()
+    usePollStore.getState().reset()
+    setQuestionStates(null)
+  })
+
   // The page's own exits: the game is already closed or about to be, and the
   // blocker must not ask again. Replace: Back must not reopen it.
   const leave = () => {
