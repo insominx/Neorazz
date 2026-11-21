@@ -121,6 +121,7 @@ const PlayerPollOverlay = () => {
 
           {closed ? (
             <PollBars
+              key={snapshot.pollId}
               options={options}
               counts={snapshot.counts ?? options.map(() => 0)}
               total={snapshot.total ?? 0}

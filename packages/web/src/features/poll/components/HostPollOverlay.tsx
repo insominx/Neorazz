@@ -396,7 +396,10 @@ const HostPollOverlay = () => {
           )}
         </header>
 
+        {/* Keyed by the poll: another poll gets new bars, drawn from 0 or
+            settled where it was left, never slid from this one's widths. */}
         <PollBars
+          key={review ? review.id : live?.pollId}
           options={options}
           counts={counts}
           total={total}
