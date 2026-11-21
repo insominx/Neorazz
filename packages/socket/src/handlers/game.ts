@@ -388,6 +388,24 @@ export const gameSocketHandlers = ({ io, socket }: SocketContext) => {
     }),
   )
 
+  socket.on(EVENTS.MANAGER.SHOW_STANDINGS, (message) =>
+    withGame(gameIdOf(message), socket, (game) => {
+      game.showStandings(socket, fieldsOf(message).shown === true)
+    }),
+  )
+
+  socket.on(EVENTS.MANAGER.REOPEN_POLL, (message, ack) =>
+    withGame(gameIdOf(message), socket, (game) => {
+      const target = pollTargetOf(fieldsOf(message))
+      const outcome =
+        typeof target === "string"
+          ? game.reopenInlinePoll(socket, target)
+          : "notFound"
+
+      ackOf(ack)?.(outcome)
+    }),
+  )
+
   // A screen opening on a room that is gone has nothing to be told: its own
   // reconnect says so.
   socket.on(EVENTS.POLL.SYNC, (message) => {

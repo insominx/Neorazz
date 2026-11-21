@@ -81,6 +81,7 @@
     "startPoll",
     "closePoll",
     "dismissPoll",
+    "reopenPoll",
     "reviewPoll",
     "askBox",
   ]

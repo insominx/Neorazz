@@ -1,4 +1,4 @@
-import { EVENTS } from "@razzia/common/constants"
+import { EVENTS, LECTURE_TEXT } from "@razzia/common/constants"
 import type {
   AskBoxOutcome,
   AskOutcome,
@@ -144,6 +144,14 @@ class Game {
     { name: Status; data: StatusDataMap[Status] }
   >()
   private resultSaved = false
+  // After a lecture's podium: whether the phones have been sent back from their
+  // final place to the quiz-over wait (`showStandings`), and each final place
+  // by client, to show again when the deck comes back to its standings.
+  private standingsResting = false
+  private readonly finalPlaces = new Map<
+    string,
+    { name: Status; data: StatusDataMap[Status] }
+  >()
   // The polls that closed in this room, for a deck that asks what already ran.
   private pollsDone: PollDone[] = []
   // The deck polls (sent inline) that closed here: each runs once per room.
@@ -770,9 +778,66 @@ class Game {
   private markStarted(outcome: PollOutcome, inline: boolean): PollOutcome {
     if (outcome === "accepted") {
       this.activeInline = inline
+      // A poll after the podium closes onto the quiz-over wait, never back
+      // onto a phone's final place.
+      this.restStandings()
     }
 
     return outcome
+  }
+
+  /**
+   * A deck's lecture room after its podium: each phone shows its final place
+   * only while the deck shows the host page (its standings face); once the
+   * deck moves on, the quiz-over wait a latecomer gets. So a poll after the
+   * podium, a reconnect or the rest of the lecture never falls back to the
+   * result card (CST-426 task 0170). The bridge sends it from the deck's
+   * `visibility`. Only the room's host, only a finished lecture room.
+   */
+  showStandings(socket: Socket, shown: boolean): void {
+    if (!this.lecture || !this.isManager(socket) || !this.round.isFinished()) {
+      return
+    }
+
+    if (!shown) {
+      this.restStandings()
+
+      return
+    }
+
+    // Under a poll the phones stay on the wait; the poll's own screen is up.
+    if (!this.standingsResting || this.poll.isActive()) {
+      return
+    }
+
+    this.standingsResting = false
+
+    for (const player of this.playerManager.getAll()) {
+      const place = this.finalPlaces.get(player.clientId)
+
+      if (place) {
+        this.sendStatus(player.id, place.name, place.data)
+      }
+    }
+  }
+
+  private restStandings(): void {
+    if (!this.lecture || !this.round.isFinished() || this.standingsResting) {
+      return
+    }
+
+    this.standingsResting = true
+
+    for (const player of this.playerManager.getAll()) {
+      const status = this.playerStatus.get(player.id)
+
+      if (status?.name === STATUS.FINISHED) {
+        this.finalPlaces.set(player.clientId, status)
+        this.sendStatus(player.id, STATUS.WAIT, {
+          text: LECTURE_TEXT.QUIZ_OVER,
+        })
+      }
+    }
   }
 
   // A close or dismiss may name the poll it means (`pollId`). A deck does, so
@@ -815,6 +880,38 @@ class Game {
         this.inlineDone.add(done.id)
       }
 
+      this.emitLectureState()
+    }
+
+    return outcome
+  }
+
+  // A deck's poll that closed here opens again with its votes (`pollReopen`):
+  // in place while its result is on the stage, or back onto the stage from the
+  // room at rest or from another poll's result. It then counts as not run until
+  // it closes again, and that close replaces the result it saved.
+  reopenInlinePoll(socket: Socket, pollId: string): PollOutcome {
+    const refusal = this.pollRefusal(socket)
+
+    if (refusal) {
+      return refusal
+    }
+
+    if (!this.inlineDone.has(pollId)) {
+      return "notFound"
+    }
+
+    if (this.poll.isOpen() || !this.roomAtRest()) {
+      return "busy"
+    }
+
+    const outcome = this.poll.reopen(socket, pollId, { replaceClosed: true })
+
+    if (outcome === "accepted") {
+      this.activeInline = true
+      this.restStandings()
+      this.inlineDone.delete(pollId)
+      this.pollsDone = this.pollsDone.filter((done) => done.id !== pollId)
       this.emitLectureState()
     }
 

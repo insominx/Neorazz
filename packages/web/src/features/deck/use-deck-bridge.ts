@@ -184,8 +184,7 @@ export const useDeckBridge = () => {
     }
 
     const { gameId: current } = stateRef.current
-    const mine =
-      room && current && room.gameId === current ? room : null
+    const mine = room && current && room.gameId === current ? room : null
 
     inboxRecordId.current = mine?.record?.id ?? null
     post({ type: "inbox", room: mine ? toBridgeInbox(mine) : null })
@@ -417,6 +416,30 @@ export const useDeckBridge = () => {
         outcome: "ignored",
         reason: "notCurrent",
       })
+
+      return
+    }
+
+    if (command.type === "reopenPoll") {
+      const { pollId } = command
+
+      send.emit(
+        EVENTS.MANAGER.REOPEN_POLL,
+        { gameId, pollId },
+        (error: Error | null, outcome?: PollOutcome) => {
+          // The reopened poll takes the stage: a result of it shown again on
+          // this page gives way to it.
+          if (
+            !error &&
+            outcome === "accepted" &&
+            usePollStore.getState().review?.id === pollId
+          ) {
+            usePollStore.getState().setReview(null)
+          }
+
+          answer(error, outcome)
+        },
+      )
 
       return
     }
@@ -812,6 +835,30 @@ export const useDeckBridge = () => {
   useEffect(() => {
     useSoundStore.getState().setSuppressed(isSilent(visible, review))
   }, [visible, review])
+
+  // After a lecture's podium the phones show their final place only while the
+  // deck shows this page (its standings face): moving on sends them to the
+  // quiz-over wait, coming back shows their place again (CST-426 task 0170).
+  // Sent on each change, and again for a room this page attaches to.
+  const lectureFinished = lecture?.finished === true
+  const standingsSent = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!attached || !gameId || !lectureFinished) {
+      standingsSent.current = null
+
+      return
+    }
+
+    const key = `${gameId}:${visible}`
+
+    if (standingsSent.current === key) {
+      return
+    }
+
+    standingsSent.current = key
+    socket.emit(EVENTS.MANAGER.SHOW_STANDINGS, { gameId, shown: visible })
+  }, [attached, gameId, lectureFinished, visible, socket])
 
   // A result shown again belongs to its room: a new game, or a page no longer
   // attached, takes it away.

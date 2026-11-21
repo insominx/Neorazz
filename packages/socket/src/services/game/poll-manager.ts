@@ -20,6 +20,17 @@ export const MAX_VOTE_CHANGES = 30
 
 type Phase = "idle" | "open" | "closed"
 
+// How many closed polls a room keeps for a reopen. A lecture runs a handful;
+// past this the oldest is forgotten (it can no longer be reopened).
+export const MAX_PARKED_POLLS = 50
+
+interface ParkedPoll {
+  poll: PollWithId
+  votes: Map<string, number>
+  changes: Map<string, number>
+  recordId: string | null
+}
+
 export interface PollManagerOptions {
   io: Server
   players: Pick<PlayerManager, "getAll" | "findById" | "findByClientId">
@@ -48,6 +59,13 @@ export class PollManager {
   private closedCounts: number[] | null = null
   private closedVoters: PollVoter[] | undefined = undefined
   private unsaved: PollResultRecord[] = []
+  // The saved result this poll writes: set at its first close, and kept by a
+  // reopen, so the next close replaces that result instead of adding one.
+  private recordId: string | null = null
+  // Closed polls that have left the stage (dismissed, or replaced by the next
+  // poll) with who voted for what, so a deck can reopen one with its votes
+  // (`reopen`). Never sent anywhere; dropped with the room.
+  private readonly parked = new Map<string, ParkedPoll>()
 
   constructor(opts: PollManagerOptions) {
     this.opts = opts
@@ -81,9 +99,71 @@ export class PollManager {
       return "busy"
     }
 
+    this.putAway()
     this.reset()
     this.phase = "open"
     this.poll = { ...poll, options: [...poll.options] }
+    this.emitState()
+
+    return "accepted"
+  }
+
+  /**
+   * Opens a closed poll again with the votes it had: in place while its result
+   * is on the stage, or back onto the stage once it has left it (from the room
+   * at rest, or, with `replaceClosed`, from another poll's result). Players who
+   * have left the room since lose their votes, as they would have while it was
+   * open. The next close replaces the result the last one saved.
+   */
+  reopen(
+    socket: Socket,
+    pollId: string,
+    { replaceClosed = false }: { replaceClosed?: boolean } = {},
+  ): PollOutcome {
+    if (!this.opts.isManager(socket)) {
+      return "notManager"
+    }
+
+    if (this.phase === "open") {
+      return this.poll?.id === pollId ? "none" : "busy"
+    }
+
+    if (this.phase === "closed" && this.poll?.id === pollId) {
+      this.phase = "open"
+      this.closedCounts = null
+      this.closedVoters = undefined
+      this.dropLeavers()
+      this.emitState()
+
+      return "accepted"
+    }
+
+    const kept = this.parked.get(pollId)
+
+    if (!kept) {
+      return "notFound"
+    }
+
+    if (this.phase === "closed" && !replaceClosed) {
+      return "busy"
+    }
+
+    this.putAway()
+    this.reset()
+    this.parked.delete(pollId)
+    this.phase = "open"
+    this.poll = kept.poll
+    this.recordId = kept.recordId
+
+    for (const [clientId, option] of kept.votes) {
+      this.votes.set(clientId, option)
+    }
+
+    for (const [clientId, count] of kept.changes) {
+      this.changes.set(clientId, count)
+    }
+
+    this.dropLeavers()
     this.emitState()
 
     return "accepted"
@@ -158,6 +238,7 @@ export class PollManager {
       return "none"
     }
 
+    this.putAway()
     this.reset()
     this.emitState()
 
@@ -194,6 +275,7 @@ export class PollManager {
   /** The room is gone: drop who voted for what. */
   stop(): void {
     this.reset()
+    this.parked.clear()
   }
 
   /**
@@ -329,6 +411,42 @@ export class PollManager {
     this.changes.clear()
     this.closedCounts = null
     this.closedVoters = undefined
+    this.recordId = null
+  }
+
+  // A closed poll leaving the stage is kept, with its votes, for a reopen.
+  private putAway(): void {
+    if (this.phase !== "closed" || !this.poll) {
+      return
+    }
+
+    this.parked.delete(this.poll.id)
+    this.parked.set(this.poll.id, {
+      poll: this.poll,
+      votes: new Map(this.votes),
+      changes: new Map(this.changes),
+      recordId: this.recordId,
+    })
+
+    while (this.parked.size > MAX_PARKED_POLLS) {
+      const oldest = this.parked.keys().next().value
+
+      if (oldest === undefined) {
+        break
+      }
+
+      this.parked.delete(oldest)
+    }
+  }
+
+  // A reopened poll keeps only the votes of players still in the room.
+  private dropLeavers(): void {
+    for (const clientId of [...this.votes.keys()]) {
+      if (!this.opts.players.findByClientId(clientId)) {
+        this.votes.delete(clientId)
+        this.changes.delete(clientId)
+      }
+    }
   }
 
   private buildRecord(partial: boolean): PollResultRecord {
@@ -340,8 +458,10 @@ export class PollManager {
       throw new Error("No poll to record")
     }
 
+    this.recordId ??= `${Date.now()}-${nanoid(8)}`
+
     return {
-      id: `${Date.now()}-${nanoid(8)}`,
+      id: this.recordId,
       pollId: poll.id,
       question: poll.question,
       options: [...poll.options],

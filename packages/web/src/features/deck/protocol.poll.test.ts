@@ -99,6 +99,7 @@ describe("the poll commands", () => {
       "pollAfterPodium",
       "asks",
       "presenterInbox",
+      "pollReopen",
     ])
   })
 })

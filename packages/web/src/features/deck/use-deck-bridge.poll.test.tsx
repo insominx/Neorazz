@@ -206,6 +206,7 @@ describe("useDeckBridge and polls", () => {
         "pollAfterPodium",
         "asks",
         "presenterInbox",
+        "pollReopen",
       ],
       poll: null,
       pollsDone: [],

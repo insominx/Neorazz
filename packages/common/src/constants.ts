@@ -56,6 +56,11 @@ export const EVENTS = {
     START_POLL: "manager:startPoll",
     CLOSE_POLL: "manager:closePoll",
     DISMISS_POLL: "manager:dismissPoll",
+    // A deck's poll that closed in the room opens again with its votes.
+    REOPEN_POLL: "manager:reopenPoll",
+    // After a lecture's podium: whether the deck shows its standings, so the
+    // phones show their final place only then (no reply).
+    SHOW_STANDINGS: "manager:showStandings",
     // The game's manager (the presenter's deck frame or host page) opens or
     // closes the room's question box.
     SET_ASK_BOX: "manager:setAskBox",

@@ -127,6 +127,15 @@ const deckCommandSchema = z.discriminatedUnion("type", [
   z.object({ ...envelope, type: z.literal("closePoll"), ...pollTarget }),
   // Takes the result away and gives the room back to the quiz.
   z.object({ ...envelope, type: z.literal("dismissPoll"), ...pollTarget }),
+  // Opens a deck poll that closed in this room again, with its votes: in
+  // place while its result is on the stage, or back onto the stage. The next
+  // close replaces the result the last one saved (`pollReopen`).
+  z.object({
+    ...envelope,
+    type: z.literal("reopenPoll"),
+    pollId: z.string().max(64),
+    gameId: z.string().max(200).optional(),
+  }),
   // Shows a poll that closed in this room again, as it was left, in place of
   // the stage, or (null) stops. Only this page changes: the room, its stage and
   // the phones do not.
@@ -158,7 +167,7 @@ export type RoundCommand = Extract<
 
 export type PollCommand = Extract<
   DeckCommand,
-  { type: "startPoll" | "closePoll" | "dismissPoll" }
+  { type: "startPoll" | "closePoll" | "dismissPoll" | "reopenPoll" }
 >
 
 export const parseDeckCommand = (data: unknown): DeckCommand | null => {
@@ -190,7 +199,8 @@ export const isPollStart = (data: unknown): boolean => {
 export const isPollCommand = (command: DeckCommand): command is PollCommand =>
   command.type === "startPoll" ||
   command.type === "closePoll" ||
-  command.type === "dismissPoll"
+  command.type === "dismissPoll" ||
+  command.type === "reopenPoll"
 
 // What this build can do, so a deck can tell an older Razzia by its absence.
 // A name is listed only once it is built.
@@ -214,6 +224,9 @@ export const FEATURES: readonly string[] = [
   // commands and the `inbox` message: the attached room's waiting questions,
   // only while the deck asks (ADR 0007).
   "presenterInbox",
+  // `pollReopen`: the `reopenPoll` command. A closed deck poll opens again
+  // with its votes, and its next close replaces the saved result.
+  "pollReopen",
 ]
 
 // One waiting question, as the presenter's drawer draws it.

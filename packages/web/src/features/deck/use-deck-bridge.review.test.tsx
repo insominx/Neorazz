@@ -195,6 +195,78 @@ describe("useDeckBridge showing a closed poll again, and naming its targets", ()
     expect(lastState()).toMatchObject({ reviewingPoll: null })
   })
 
+  it("reopens a closed poll by name, and lets it take the place of its result shown again", () => {
+    renderHook(() => {
+      useDeckBridge()
+    })
+    sendCommand({ type: "hello" })
+    attach(lectureState({ pollsDone: [closed("one", [2, 1])] }))
+    sendCommand({ type: "reviewPoll", id: "one" })
+
+    sendCommand({ type: "reopenPoll", pollId: "one" })
+    expect(sentOf(EVENTS.MANAGER.REOPEN_POLL)).toEqual([
+      [
+        EVENTS.MANAGER.REOPEN_POLL,
+        { gameId: "g-1", pollId: "one" },
+        expect.any(Function),
+      ],
+    ])
+    answer("busy")
+
+    // Refused: the result stays on screen.
+    expect(usePollStore.getState().review).toEqual(closed("one", [2, 1]))
+
+    sendCommand({ type: "reopenPoll", pollId: "one" })
+    answer("accepted")
+
+    expect(usePollStore.getState().review).toBeNull()
+    expect(
+      postMessage.mock.calls
+        .map(([message]) => message)
+        .filter((message) => message.type === "result")
+        .map((message) => [message.command, message.outcome]),
+    ).toEqual(
+      expect.arrayContaining([
+        ["reopenPoll", "ignored"],
+        ["reopenPoll", "accepted"],
+      ]),
+    )
+  })
+
+  it("tells a finished lecture room whether its standings show, from the deck's visibility, once per change", () => {
+    const standings = () =>
+      mocks.socket.emit.mock.calls.filter(
+        ([event]) => event === EVENTS.MANAGER.SHOW_STANDINGS,
+      )
+
+    renderHook(() => {
+      useDeckBridge()
+    })
+    sendCommand({ type: "hello" })
+    attach(lectureState({ finished: false }))
+    sendCommand({ type: "visibility", visible: true })
+    sendCommand({ type: "visibility", visible: false })
+
+    // Before the podium nothing is sent
+    expect(standings()).toEqual([])
+
+    act(() => {
+      useManagerStore.setState({ lecture: lectureState({ finished: true }) })
+    })
+    expect(standings()).toEqual([
+      [EVENTS.MANAGER.SHOW_STANDINGS, { gameId: "g-1", shown: false }],
+    ])
+
+    sendCommand({ type: "visibility", visible: true })
+    sendCommand({ type: "visibility", visible: true })
+    sendCommand({ type: "visibility", visible: false })
+    expect(standings().map((call) => call[1] as unknown)).toEqual([
+      { gameId: "g-1", shown: false },
+      { gameId: "g-1", shown: true },
+      { gameId: "g-1", shown: false },
+    ])
+  })
+
   it("shows nothing for a poll that did not close here, or before it is attached", () => {
     renderHook(() => {
       useDeckBridge()

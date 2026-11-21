@@ -200,6 +200,15 @@ export interface ClientToServerEvents {
     _message: MessageGameId & { pollId?: string },
     _ack: (_outcome: PollOutcome) => void,
   ) => void
+  // The game's manager only; no reply.
+  [EVENTS.MANAGER.SHOW_STANDINGS]: (
+    _message: MessageGameId & { shown: boolean },
+  ) => void
+  // A deck's poll that closed in this room, by its id.
+  [EVENTS.MANAGER.REOPEN_POLL]: (
+    _message: MessageGameId & { pollId: string },
+    _ack: (_outcome: PollOutcome) => void,
+  ) => void
   // The game's manager only.
   [EVENTS.MANAGER.SET_ASK_BOX]: (
     _message: MessageGameId & { open: boolean },
