@@ -426,8 +426,8 @@ server's clock, so the room's music and every phone's chord land together, and a
 screen that arrives late finds its beats in the past and plays nothing. A
 reviewed question is called with `silent: true` and cannot cut the live game's
 bed. The score rises a semitone each round (capped at five) and the final
-question adds a layer. The `classic` and `techno` packs play through the same
-calls via a legacy adapter, loaded when they are about to play and unloaded after.
+question adds a layer. The `classic` pack plays through the same calls via a
+legacy adapter, loaded when it is about to play and unloaded after.
 `show` is the default pack; it is a setting, so an old game keeps its own.
 Volume, mute and the deck's suppression still go through Howler's master gain.
 

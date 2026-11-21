@@ -241,7 +241,7 @@ describe("managerSocketHandlers config changes", () => {
     const ack = vi.fn()
 
     handlers.get(EVENTS.MANAGER.SOUND_THEME_SET)?.(
-      { soundTheme: "techno" } as never,
+      { soundTheme: "classic" } as never,
       ack as never,
     )
 

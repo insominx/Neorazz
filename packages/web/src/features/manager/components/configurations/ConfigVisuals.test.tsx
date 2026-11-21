@@ -93,7 +93,7 @@ describe("ConfigVisuals settings", () => {
       EVENTS.MANAGER.SHOW_INTENSITY_SET,
       "errors:visuals.showIntensitySetFailed",
     ],
-    [7, EVENTS.MANAGER.SOUND_THEME_SET, "errors:visuals.soundThemeSetFailed"],
+    [6, EVENTS.MANAGER.SOUND_THEME_SET, "errors:visuals.soundThemeSetFailed"],
   ])(
     "frees radio %i and toasts when the answer never comes",
     (index, event, key) => {
@@ -155,9 +155,9 @@ describe("ConfigVisuals settings", () => {
 
     fireEvent.click(radios()[1])
     fireEvent.click(radios()[3])
-    fireEvent.click(radios()[7])
+    fireEvent.click(radios()[6])
     fireEvent.click(clearButton())
-    expect(radios().filter((radio) => radio.disabled)).toHaveLength(8)
+    expect(radios().filter((radio) => radio.disabled)).toHaveLength(7)
     expect(clearButton().disabled).toBe(true)
 
     mocks.connected = false

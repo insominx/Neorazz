@@ -3,54 +3,11 @@ import {
   ANSWER_IDENTITY,
   ANSWER_INK,
   ANSWERS_LABELS,
-  SFX,
   getManagerSkipEvent,
-  sfxForTheme,
 } from "@razzia/web/features/game/utils/constants"
 import { EVENTS } from "@razzia/common/constants"
 import { STATUS } from "@razzia/common/types/game/status"
 import { describe, expect, it } from "vitest"
-
-const CLASSIC_CUES = [
-  SFX.ANSWERS.MUSIC,
-  SFX.ANSWERS.SOUND,
-  SFX.BOUMP_SOUND,
-  SFX.SHOW_SOUND,
-  SFX.RESULTS_SOUND,
-  SFX.PODIUM.THREE,
-  SFX.PODIUM.SECOND,
-  SFX.PODIUM.SNEAR_ROOL,
-  SFX.PODIUM.FIRST,
-]
-
-describe("sfxForTheme", () => {
-  it("keeps every cue classic for undefined and classic", () => {
-    for (const cue of CLASSIC_CUES) {
-      expect(sfxForTheme(undefined, cue)).toBe(cue)
-      expect(sfxForTheme("classic", cue)).toBe(cue)
-    }
-  })
-
-  it("maps all nine cues under the techno pack", () => {
-    expect(CLASSIC_CUES.map((cue) => sfxForTheme("techno", cue))).toEqual([
-      "/sounds/themes/techno/answersMusic.mp3",
-      "/sounds/themes/techno/answersSound.mp3",
-      "/sounds/themes/techno/boump.mp3",
-      "/sounds/themes/techno/show.mp3",
-      "/sounds/themes/techno/results.mp3",
-      "/sounds/themes/techno/three.mp3",
-      "/sounds/themes/techno/second.mp3",
-      "/sounds/themes/techno/snearRoll.mp3",
-      "/sounds/themes/techno/first.mp3",
-    ])
-  })
-
-  it("falls back to classic for a cue the pack does not ship", () => {
-    expect(sfxForTheme("techno", "/sounds/notInThePack.mp3")).toBe(
-      "/sounds/notInThePack.mp3",
-    )
-  })
-})
 
 describe("getManagerSkipEvent", () => {
   const answerData = {

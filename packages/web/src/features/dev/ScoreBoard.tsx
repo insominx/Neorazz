@@ -345,7 +345,6 @@ const SURFACES: ReadonlyArray<{ label: string; value: Surface }> = [
 
 const PACK_LABEL: Record<SoundTheme, string> = {
   classic: "Classic",
-  techno: "Techno",
   show: "Show score",
 }
 

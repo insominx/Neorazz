@@ -567,11 +567,39 @@ describe("serveBackgroundUpload", () => {
 })
 
 describe("resolveVisuals", () => {
-  it("resolves configured techno while preserving quiz background precedence", async () => {
+  it("resolves configured classic while preserving quiz background precedence", async () => {
     fs.writeFileSync(
       path.join(configRoot, "assets/backgrounds/quiz.png"),
       pngBytes,
     )
+    fs.writeFileSync(
+      path.join(configRoot, "game.json"),
+      JSON.stringify({
+        managerPassword: "secret",
+        visuals: { soundTheme: "classic" },
+      }),
+    )
+
+    const { resolveVisuals } = await import("@razzia/socket/services/visuals")
+    const { getGameConfig } = await import("@razzia/socket/services/config")
+
+    expect(resolveVisuals(undefined, getGameConfig())).toEqual({
+      soundTheme: "classic",
+      showIntensity: "full",
+    })
+    expect(
+      resolveVisuals(
+        { visuals: { background: { kind: "config-asset", path: "quiz.png" } } },
+        getGameConfig(),
+      ),
+    ).toEqual({
+      backgroundUrl: "/config-assets/backgrounds/quiz.png",
+      soundTheme: "classic",
+      showIntensity: "full",
+    })
+  })
+
+  it("reads a config that still names the removed techno pack as the show's score", async () => {
     fs.writeFileSync(
       path.join(configRoot, "game.json"),
       JSON.stringify({
@@ -583,20 +611,7 @@ describe("resolveVisuals", () => {
     const { resolveVisuals } = await import("@razzia/socket/services/visuals")
     const { getGameConfig } = await import("@razzia/socket/services/config")
 
-    expect(resolveVisuals(undefined, getGameConfig())).toEqual({
-      soundTheme: "techno",
-      showIntensity: "full",
-    })
-    expect(
-      resolveVisuals(
-        { visuals: { background: { kind: "config-asset", path: "quiz.png" } } },
-        getGameConfig(),
-      ),
-    ).toEqual({
-      backgroundUrl: "/config-assets/backgrounds/quiz.png",
-      soundTheme: "techno",
-      showIntensity: "full",
-    })
+    expect(resolveVisuals(undefined, getGameConfig()).soundTheme).toBe("show")
   })
 
   it("defaults sound theme to the show's own score when game config omits it", async () => {

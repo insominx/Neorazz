@@ -1,6 +1,6 @@
 /**
- * The legacy adapter: the same scene and cue calls, played as the classic and
- * techno mp3 packs.
+ * The legacy adapter: the same scene and cue calls, played as the classic mp3
+ * pack.
  *
  * What the old screens did with `use-sound` is kept: the question's `show`
  * sound, the answers bed looping while answers are open, a pop per answer, a

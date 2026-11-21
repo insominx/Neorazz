@@ -2,11 +2,7 @@ import { SOUND_THEMES, type SoundTheme } from "@razzia/common/types/visuals"
 import { Button, Toggle } from "@razzia/web/features/dev/director-ui"
 import { routeHowlerThroughSmallSpeakers } from "@razzia/web/features/dev/small-speakers"
 import { useSoundStore } from "@razzia/web/features/game/stores/sound"
-import {
-  SFX,
-  sfxForTheme,
-  sfxVolume,
-} from "@razzia/web/features/game/utils/game-constants"
+import { SFX, sfxVolume } from "@razzia/web/features/game/utils/game-constants"
 import { Howl } from "howler"
 import { useEffect, useRef, useState } from "react"
 
@@ -89,7 +85,6 @@ const decibels = (gain: number) => (20 * Math.log10(gain)).toFixed(1)
 
 const THEME_LABEL: Record<SoundTheme, string> = {
   classic: "Classic",
-  techno: "Techno",
   show: "Show (generated)",
 }
 
@@ -131,7 +126,7 @@ const SoundTab = () => {
   }
 
   const toggle = (cue: Cue) => {
-    const src = sfxForTheme(theme, cue.classic)
+    const src = cue.classic
     const key = `${theme}:${cue.id}`
     const existing = howls.current.get(key)
 
@@ -242,7 +237,7 @@ const SoundTab = () => {
         </thead>
         <tbody>
           {CUES.map((cue) => {
-            const src = sfxForTheme(theme, cue.classic)
+            const src = cue.classic
             const key = `${theme}:${cue.id}`
             const gain = sfxVolume(src)
             const on = playing.has(key)

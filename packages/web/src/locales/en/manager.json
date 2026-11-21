@@ -22,10 +22,6 @@
         "title": "Classic"
       },
       "label": "Sound theme",
-      "techno": {
-        "description": "Full techno pack: a techno bed during answers plus techno UI and podium cues.",
-        "title": "Techno"
-      },
       "show": {
         "title": "Show",
         "description": "A generated score that follows the round: quiet while reading, a drop when answers open, and a hit for the verdict. It climbs a little each question."

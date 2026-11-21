@@ -12,14 +12,16 @@ export type Dialect = "dark-everywhere" | "stage-studio"
 export const DEFAULT_DIALECT: Dialect = "dark-everywhere"
 
 /**
- * `classic` and `techno` are the mp3 packs; `show` is the generated, adaptive
+ * `classic` is the original quiz's mp3 pack; `show` is the generated, adaptive
  * score (`packages/web/src/features/game/audio`), which needs no sound files.
+ * The `techno` pack was removed; a config that still names it reads as the
+ * default, because the validators fall back to it.
  */
-export type SoundTheme = "classic" | "techno" | "show"
+export type SoundTheme = "classic" | "show"
 
 export const DEFAULT_SOUND_THEME: SoundTheme = "show"
 
-export const SOUND_THEMES = ["classic", "techno", "show"] as const
+export const SOUND_THEMES = ["classic", "show"] as const
 
 /**
  * How big the show is. `full` is everything; `calm` keeps the picture but

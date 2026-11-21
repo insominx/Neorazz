@@ -1,8 +1,7 @@
 import { STATUS } from "@razzia/common/types/game/status"
-import type { SoundTheme } from "@razzia/common/types/visuals"
 
 // The game's plain data: answer colours and labels, medals, the answer grid, the
-// sound packs. Kept apart from `constants.ts`, which imports every screen to build
+// classic sound files. Kept apart from `constants.ts`, which imports every screen to build
 // the registry of them: a screen (or the audio it uses) importing this file instead
 // of that one is what keeps the import graph free of cycles.
 
@@ -128,55 +127,9 @@ export const SFX = {
   BOUMP_SOUND: "/sounds/boump.mp3",
 } as const
 
-const THEMED_SFX_ROOT = "/sounds/themes"
-
 /**
- * Basenames each non-classic pack actually ships. A cue that is absent here
- * falls back to the classic file, so a partial pack degrades instead of
- * letting Howler 404 into silence. `themed-sfx.test.ts` pins these lists to
- * the files under `public/sounds/themes/`.
- */
-export const THEMED_SFX_FILES: Partial<Record<SoundTheme, readonly string[]>> =
-  {
-    techno: [
-      "answersMusic.mp3",
-      "answersSound.mp3",
-      "boump.mp3",
-      "show.mp3",
-      "results.mp3",
-      "three.mp3",
-      "second.mp3",
-      "snearRoll.mp3",
-      "first.mp3",
-    ],
-  }
-
-/**
- * Maps a classic cue path to its themed counterpart for the session theme.
- * Classic, undefined, and any cue the pack does not ship stay on the classic
- * path.
- */
-export const sfxForTheme = (
-  theme: SoundTheme | undefined,
-  classicPath: string,
-): string => {
-  const pack = theme ? THEMED_SFX_FILES[theme] : undefined
-
-  if (!pack) {
-    return classicPath
-  }
-
-  const basename = classicPath.slice(classicPath.lastIndexOf("/") + 1)
-
-  return pack.includes(basename)
-    ? `${THEMED_SFX_ROOT}/${theme}/${basename}`
-    : classicPath
-}
-
-/**
- * Classic-pack gain per cue, as tuned by ear. It is the reference mix every
- * other pack is levelled against, and it multiplies Howler's master gain (see
- * `stores/sound`).
+ * Classic-pack gain per cue, as tuned by ear. It multiplies Howler's master
+ * gain (see `stores/sound`).
  */
 const SFX_BASE_VOLUME: Partial<Record<string, number>> = {
   "answersMusic.mp3": 0.2,
@@ -190,43 +143,11 @@ const SFX_BASE_VOLUME: Partial<Record<string, number>> = {
   "first.mp3": 0.1,
 }
 
-/**
- * Per-pack trims (dB) that land each themed cue on its classic loudness, so
- * switching packs changes the sound but not the mix. Measured with ffmpeg's
- * EBU R128 `ebur128` filter: integrated loudness for the looping bed and the
- * drum roll, maximum momentary loudness for every one-shot. Re-measure when a
- * pack file changes.
- */
-export const THEMED_SFX_TRIM_DB: Partial<
-  Record<SoundTheme, Partial<Record<string, number>>>
-> = {
-  techno: {
-    "answersMusic.mp3": 8.2,
-    "answersSound.mp3": 1.5,
-    "boump.mp3": -3.7,
-    "show.mp3": -2.3,
-    "results.mp3": 11,
-    "three.mp3": -4.8,
-    "second.mp3": 4.1,
-    "snearRoll.mp3": -8.6,
-    "first.mp3": 9.9,
-  },
-}
-
-const THEMED_SFX_PATH = /^\/sounds\/themes\/([^/]+)\/[^/]+$/u
-
-/**
- * Playback volume for a resolved cue path, classic or themed. Reads the theme
- * from the path `sfxForTheme` produced, so call sites stay
- * `useSound(src, { volume: sfxVolume(src) })`.
- */
+/** Playback volume for a classic cue path. */
 export const sfxVolume = (src: string): number => {
   const basename = src.slice(src.lastIndexOf("/") + 1)
-  const base = SFX_BASE_VOLUME[basename] ?? 1
-  const theme = THEMED_SFX_PATH.exec(src)?.[1] as SoundTheme | undefined
-  const trim = theme ? (THEMED_SFX_TRIM_DB[theme]?.[basename] ?? 0) : 0
 
-  return Math.min(1, base * 10 ** (trim / 20))
+  return Math.min(1, SFX_BASE_VOLUME[basename] ?? 1)
 }
 
 /** Seconds left at which the answering countdown starts ticking. */

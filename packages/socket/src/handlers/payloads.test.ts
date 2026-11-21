@@ -261,7 +261,7 @@ describe("socket handlers given a well-formed request from the wrong client", ()
       [EVENTS.MANAGER.GLOBAL_BACKGROUND_SET, [{ background: null }]],
       [EVENTS.MANAGER.GLOBAL_BACKGROUND_CLEAR, []],
       [EVENTS.MANAGER.DIALECT_SET, [{ dialect: "stage-studio" }]],
-      [EVENTS.MANAGER.SOUND_THEME_SET, [{ soundTheme: "techno" }]],
+      [EVENTS.MANAGER.SOUND_THEME_SET, [{ soundTheme: "classic" }]],
       [EVENTS.MANAGER.SHOW_INTENSITY_SET, [{ showIntensity: "calm" }]],
       [EVENTS.QUIZZ.GET, ["quiz-1"]],
       [EVENTS.QUIZZ.SAVE, [quizzData]],

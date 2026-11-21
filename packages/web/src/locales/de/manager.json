@@ -22,10 +22,6 @@
         "title": "Klassisch"
       },
       "label": "Soundthema",
-      "techno": {
-        "description": "Komplettes Techno-Paket: Techno-Bett während der Antworten plus Techno-Sounds für Oberfläche und Podium.",
-        "title": "Techno"
-      },
       "show": {
         "title": "Show",
         "description": "Eine erzeugte Musik, die der Runde folgt: leise beim Lesen, ein Drop, wenn die Antworten öffnen, und ein Schlag zur Auflösung. Sie steigt mit jeder Frage ein wenig."

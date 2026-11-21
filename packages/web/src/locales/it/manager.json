@@ -22,10 +22,6 @@
         "title": "Classico"
       },
       "label": "Tema sonoro",
-      "techno": {
-        "description": "Pack techno completo: base techno durante le risposte e suoni techno per interfaccia e podio.",
-        "title": "Techno"
-      },
       "show": {
         "title": "Show",
         "description": "Una colonna sonora generata che segue il round: sommessa durante la lettura, un drop quando si aprono le risposte e un colpo per il verdetto. Sale un po' a ogni domanda."

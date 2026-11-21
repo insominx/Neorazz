@@ -262,7 +262,6 @@ describe("the legacy runner's Howl lifetime", () => {
   it("plays the question's sound once, on arrival", () => {
     const { clock, created, runner } = setup()
 
-    runner.setTheme("techno")
     runner.start(
       plan(
         spec({
@@ -278,7 +277,7 @@ describe("the legacy runner's Howl lifetime", () => {
     clock.advance(1)
 
     expect(created.map((howl) => howl.source.src)).toEqual([
-      "/sounds/techno/show.mp3",
+      "/sounds/classic/show.mp3",
     ])
     expect(created[0].plays).toBe(1)
   })
@@ -396,7 +395,8 @@ describe("the legacy runner's Howl lifetime", () => {
     runner.start(plan(answers(14)), clock.now(), "full")
     clock.advance(10)
     runner.start(plan(spec({ scene: "lamps" })), clock.now() + 500, "full")
-    runner.setTheme("techno")
+    // Any pack other than the current one; the runner only compares names.
+    runner.setTheme("show")
 
     expect(created[0].unloaded).toBe(true)
 

@@ -22,10 +22,6 @@
         "title": "Clásico"
       },
       "label": "Tema de sonido",
-      "techno": {
-        "description": "Pack techno completo: base techno durante las respuestas y sonidos techno de interfaz y podio.",
-        "title": "Techno"
-      },
       "show": {
         "title": "Show",
         "description": "Una banda sonora generada que sigue la ronda: suave al leer, un drop al abrir las respuestas y un golpe en el veredicto. Sube un poco con cada pregunta."

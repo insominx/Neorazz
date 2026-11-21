@@ -22,10 +22,6 @@
         "title": "Classique"
       },
       "label": "Thème sonore",
-      "techno": {
-        "description": "Pack techno complet : ambiance techno pendant les réponses et sons techno pour l’interface et le podium.",
-        "title": "Techno"
-      },
       "show": {
         "title": "Show",
         "description": "Une bande-son générée qui suit la manche : discrète pendant la lecture, un drop à l'ouverture des réponses et un coup pour le verdict. Elle monte un peu à chaque question."

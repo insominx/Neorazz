@@ -70,10 +70,14 @@ describe("gameVisualsConfigValidator background", () => {
 })
 
 describe("soundThemeValidator", () => {
-  it("accepts the two mp3 packs and the generated show score", () => {
-    for (const theme of ["classic", "techno", "show"]) {
+  it("accepts the classic mp3 pack and the generated show score", () => {
+    for (const theme of ["classic", "show"]) {
       expect(soundThemeValidator.parse(theme)).toBe(theme)
     }
+  })
+
+  it("no longer accepts the removed techno pack", () => {
+    expect(soundThemeValidator.safeParse("techno").success).toBe(false)
   })
 
   it("rejects an unknown pack", () => {

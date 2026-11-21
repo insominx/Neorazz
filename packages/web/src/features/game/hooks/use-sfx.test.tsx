@@ -24,13 +24,14 @@ vi.mock("@razzia/web/features/game/stores/manager", () => ({
     selector(managerState),
 }))
 
-const renderSfx = async () => {
-  const { useSfx } = await import("@razzia/web/features/game/hooks/use-sfx")
+const renderTheme = async () => {
+  const { useSoundTheme } =
+    await import("@razzia/web/features/game/hooks/use-sfx")
 
-  return renderHook(() => useSfx())
+  return renderHook(() => useSoundTheme())
 }
 
-describe("useSfx", () => {
+describe("useSoundTheme", () => {
   beforeEach(() => {
     playerState.gameId = null
     playerState.visuals.soundTheme = undefined
@@ -40,62 +41,34 @@ describe("useSfx", () => {
 
   it("uses the player session theme while joined", async () => {
     playerState.gameId = "game-1"
-    playerState.visuals.soundTheme = "techno"
-    managerState.visuals.soundTheme = "classic"
+    playerState.visuals.soundTheme = "classic"
+    managerState.visuals.soundTheme = "show"
 
-    const { result } = await renderSfx()
+    const { result } = await renderTheme()
 
-    expect(result.current("/sounds/answersMusic.mp3")).toBe(
-      "/sounds/themes/techno/answersMusic.mp3",
-    )
+    expect(result.current).toBe("classic")
   })
 
   it("uses the manager session theme when not a player", async () => {
-    managerState.visuals.soundTheme = "techno"
+    managerState.visuals.soundTheme = "classic"
 
-    const { result } = await renderSfx()
+    const { result } = await renderTheme()
 
-    expect(result.current("/sounds/answersMusic.mp3")).toBe(
-      "/sounds/themes/techno/answersMusic.mp3",
-    )
+    expect(result.current).toBe("classic")
   })
 
   it("uses the manager snapshot and ignores live config", async () => {
-    managerState.visuals.soundTheme = "classic"
-    managerState.config.game.visuals.soundTheme = "techno"
+    managerState.visuals.soundTheme = "show"
+    managerState.config.game.visuals.soundTheme = "classic"
 
-    const { result } = await renderSfx()
+    const { result } = await renderTheme()
 
-    expect(result.current("/sounds/answersMusic.mp3")).toBe(
-      "/sounds/answersMusic.mp3",
-    )
+    expect(result.current).toBe("show")
   })
 
-  it("themes every cue, not just the answers music", async () => {
-    managerState.visuals.soundTheme = "techno"
+  it("defaults to the show's score when the session names none", async () => {
+    const { result } = await renderTheme()
 
-    const { result } = await renderSfx()
-
-    expect(
-      [
-        "/sounds/answersSound.mp3",
-        "/sounds/boump.mp3",
-        "/sounds/show.mp3",
-        "/sounds/results.mp3",
-        "/sounds/three.mp3",
-        "/sounds/second.mp3",
-        "/sounds/snearRoll.mp3",
-        "/sounds/first.mp3",
-      ].map((cue) => result.current(cue)),
-    ).toEqual([
-      "/sounds/themes/techno/answersSound.mp3",
-      "/sounds/themes/techno/boump.mp3",
-      "/sounds/themes/techno/show.mp3",
-      "/sounds/themes/techno/results.mp3",
-      "/sounds/themes/techno/three.mp3",
-      "/sounds/themes/techno/second.mp3",
-      "/sounds/themes/techno/snearRoll.mp3",
-      "/sounds/themes/techno/first.mp3",
-    ])
+    expect(result.current).toBe("show")
   })
 })

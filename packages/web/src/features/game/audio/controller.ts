@@ -15,7 +15,7 @@
  *   remembered, so unmuting mid-bed joins it mid-bar.
  * - The first tap or key press resumes the context, which WebKit requires
  *   before anything outside a gesture can wake it.
- * - The `classic` and `techno` packs play through the legacy adapter instead.
+ * - The `classic` pack plays through the legacy adapter instead.
  *
  * Everything it touches arrives through `ControllerDeps`, so tests drive it
  * with fakes; `runtime.ts` supplies the real Howler, store and clock.

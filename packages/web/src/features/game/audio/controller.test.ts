@@ -650,7 +650,7 @@ describe("the legacy packs", () => {
   it("plays through the legacy adapter, never the engine", () => {
     const { engine, legacy, score } = setup()
 
-    score.configure({ intensity: "full", theme: "techno", surface: "host" })
+    score.configure({ intensity: "full", theme: "classic", surface: "host" })
     score.start({
       scene: "reading",
       chargeAt: 1000,
@@ -659,7 +659,7 @@ describe("the legacy packs", () => {
     })
     score.cue({ cue: "pop", index: 0 })
 
-    expect(legacy.setTheme).toHaveBeenCalledWith("techno")
+    expect(legacy.setTheme).toHaveBeenCalledWith("classic")
     expect(legacy.start).toHaveBeenCalledTimes(1)
     expect(legacy.cue).toHaveBeenCalledTimes(1)
     expect(engine.start).not.toHaveBeenCalled()
@@ -701,11 +701,12 @@ describe("the legacy packs", () => {
   it("unloads the old pack when the theme changes", () => {
     const { legacy, score } = setup()
 
+    score.configure({ intensity: "full", theme: "show", surface: "host" })
+    legacy.unloadAll.mockClear()
     score.configure({ intensity: "full", theme: "classic", surface: "host" })
-    score.configure({ intensity: "full", theme: "techno", surface: "host" })
 
     expect(legacy.unloadAll).toHaveBeenCalled()
-    expect(legacy.setTheme).toHaveBeenLastCalledWith("techno")
+    expect(legacy.setTheme).toHaveBeenLastCalledWith("classic")
   })
 
   describe("an untimed question's music", () => {
@@ -730,10 +731,10 @@ describe("the legacy packs", () => {
     it("comes back after an intensity change", () => {
       const { clock, legacy, score } = setup()
 
-      score.configure({ intensity: "full", theme: "techno", surface: "host" })
+      score.configure({ intensity: "full", theme: "classic", surface: "host" })
       score.start(untimed(clock))
       clock.advance(5000)
-      score.configure({ intensity: "calm", theme: "techno", surface: "host" })
+      score.configure({ intensity: "calm", theme: "classic", surface: "host" })
 
       expect(legacy.start).toHaveBeenCalledTimes(2)
       expect(legacy.start.mock.calls[1][2]).toBe("calm")
@@ -755,7 +756,7 @@ describe("the legacy packs", () => {
   it("plays the podium's files, and the board's cut, through the old pack", () => {
     const { legacy, score } = setup()
 
-    score.configure({ intensity: "full", theme: "techno", surface: "host" })
+    score.configure({ intensity: "full", theme: "classic", surface: "host" })
     score.start({ scene: "podium", places: 3 })
     score.start({ scene: "leaderboard", rows: 5, overtakes: true })
 

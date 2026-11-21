@@ -53,11 +53,6 @@ const SOUND_THEME_OPTIONS = [
     titleKey: "manager:visuals.soundTheme.classic.title",
     descriptionKey: "manager:visuals.soundTheme.classic.description",
   },
-  {
-    value: "techno",
-    titleKey: "manager:visuals.soundTheme.techno.title",
-    descriptionKey: "manager:visuals.soundTheme.techno.description",
-  },
 ] as const satisfies ReadonlyArray<{
   value: SoundTheme
   titleKey: string

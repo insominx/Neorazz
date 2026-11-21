@@ -20,7 +20,7 @@ const live = (): Score => {
 
 /**
  * The show's score: adaptive, scene-based WebAudio through Howler's master
- * gain, or the classic and techno mp3 packs through the legacy adapter. Screens
+ * gain, or the classic mp3 pack through the legacy adapter. Screens
  * call `score.start(...)` and `score.cue(...)`; they never touch an
  * AudioContext. See `scenes.ts` for every scene and what each one needs.
  */
