@@ -2,6 +2,7 @@ import { NO_TIME_LIMIT } from "@razzia/common/constants"
 import {
   type ControllerDeps,
   createScore,
+  CUE_WAKE_MS,
   type HowlerLike,
   RELEASE_AFTER_IDLE_MS,
   type SoundState,
@@ -398,14 +399,107 @@ describe("cues", () => {
     expect(engine.cue).not.toHaveBeenCalled()
   })
 
-  it("is dropped, and the context woken, while the context sleeps", () => {
-    const { ctx, engine, score } = setup()
+  // Howler puts the context to sleep after a quiet spell; on a deck's projector
+  // that is every gap between Razzia faces, so a poll's first vote arrives
+  // into a sleeping context (CST-426 task 0201).
+  describe("into a sleeping context", () => {
+    const settle = () =>
+      new Promise((resolve) => {
+        setTimeout(resolve, 0)
+      })
 
-    ctx.state = "suspended"
-    score.cue({ cue: "pop", index: 2 })
+    // A wake that the test lets happen when it chooses.
+    const sleeping = (ctx: FakeAudioContext) => {
+      const alarm = { ring: (): void => undefined }
 
-    expect(engine.cue).not.toHaveBeenCalled()
-    expect(ctx.resumed).toBeGreaterThan(0)
+      ctx.state = "suspended"
+      ctx.resume = () => {
+        ctx.resumed += 1
+
+        return new Promise<void>((resolve) => {
+          alarm.ring = () => {
+            ctx.state = "running"
+            resolve()
+          }
+        })
+      }
+
+      return alarm
+    }
+
+    it("wakes the context and plays the cue once it is awake", async () => {
+      const { ctx, engine, score } = setup()
+      const alarm = sleeping(ctx)
+
+      score.cue({ cue: "pop", index: 2 })
+
+      expect(ctx.resumed).toBe(1)
+      expect(engine.cue).not.toHaveBeenCalled()
+
+      alarm.ring()
+      await settle()
+
+      expect(engine.cue).toHaveBeenCalledTimes(1)
+    })
+
+    it("plays a poll's first vote, which nothing before it woke", async () => {
+      const { ctx, engine, score } = setup({ pollStage: true })
+      const alarm = sleeping(ctx)
+
+      score.cue({ cue: "vote", share: 0.25 })
+      alarm.ring()
+      await settle()
+
+      expect(engine.cue).toHaveBeenCalledTimes(1)
+    })
+
+    it("plays every cue that waited, once", async () => {
+      const { ctx, engine, score } = setup({ pollStage: true })
+      const alarm = sleeping(ctx)
+
+      score.cue({ cue: "vote", share: 0.25 })
+      score.cue({ cue: "beat", strength: 0.6 })
+      alarm.ring()
+      await settle()
+
+      expect(engine.cue).toHaveBeenCalledTimes(2)
+    })
+
+    it("drops a cue whose context wakes too late to mark its moment", async () => {
+      const { clock, ctx, engine, score } = setup()
+      const alarm = sleeping(ctx)
+
+      score.cue({ cue: "pop", index: 2 })
+      clock.advance(CUE_WAKE_MS + 1)
+      alarm.ring()
+      await settle()
+
+      expect(engine.cue).not.toHaveBeenCalled()
+    })
+
+    it("does not play a waiting cue once the page has gone quiet", async () => {
+      const { ctx, engine, score, setSound } = setup()
+      const alarm = sleeping(ctx)
+
+      score.cue({ cue: "pop", index: 2 })
+      setSound({ muted: true })
+      alarm.ring()
+      await settle()
+
+      expect(engine.cue).not.toHaveBeenCalled()
+    })
+
+    it("forgets the waiting cues when the score stops", async () => {
+      const { ctx, engine, score } = setup()
+      const alarm = sleeping(ctx)
+
+      score.cue({ cue: "pop", index: 2 })
+      score.stop()
+      alarm.ring()
+      await settle()
+
+      expect(engine.cue).not.toHaveBeenCalled()
+    })
   })
 })
 

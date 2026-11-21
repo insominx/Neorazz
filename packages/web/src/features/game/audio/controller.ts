@@ -15,6 +15,8 @@
  *   remembered, so unmuting mid-bed joins it mid-bar.
  * - The first tap or key press resumes the context, which WebKit requires
  *   before anything outside a gesture can wake it.
+ * - A cue that arrives while the context sleeps waits for it to wake
+ *   (`CUE_WAKE_MS`), so the first sound after a quiet spell is not lost.
  * - The `classic` pack plays through the legacy adapter instead.
  *
  * Everything it touches arrives through `ControllerDeps`, so tests drive it
@@ -30,6 +32,7 @@ import {
 import {
   createGraph,
   type Graph,
+  type SceneEvent,
 } from "@razzia/web/features/game/audio/instruments"
 import {
   legacyCue,
@@ -138,6 +141,13 @@ export const RELEASE_AFTER_IDLE_MS = 20_000
 /** A cue this late is not worth playing. */
 const CUE_LATE_MS = 150
 
+/**
+ * How long a cue waits for a sleeping context to wake. A wake takes a few
+ * milliseconds; a cue that could only play later than this would no longer
+ * land with the moment it marks.
+ */
+export const CUE_WAKE_MS = 400
+
 /** How long the quiz's sound takes to fade when a poll covers the stage. */
 export const POLL_HOLD_FADE_S = 0.4
 
@@ -166,6 +176,13 @@ interface Live {
   plan: LegacyPlan | null
 }
 
+/** A cue that arrived while the context slept, and when. */
+interface WaitingCue {
+  events: readonly SceneEvent[]
+  at: number
+  on: () => boolean
+}
+
 const sameConfig = (a: ScoreConfig, b: ScoreConfig): boolean =>
   a.intensity === b.intensity && a.theme === b.theme && a.surface === b.surface
 
@@ -186,6 +203,8 @@ export const createScore = (deps: ControllerDeps): Score => {
   let unsubscribe: (() => void) | null = null
   let wasSounding = false
   const live = new Map<Lane, Live>()
+  // Cues that arrived while the context slept, waiting for it to wake.
+  let asleep: WaitingCue[] = []
 
   // Whether the page may make any sound at all.
   const audible = (): boolean => {
@@ -267,14 +286,17 @@ export const createScore = (deps: ControllerDeps): Score => {
     }
   }
 
-  const wake = (): void => {
+  const wake = (then?: () => void): void => {
     const { ctx } = howler
 
     if (ctx && ctx.state !== "running" && ctx.state !== "closed") {
       // A timer's resume is refused outside a gesture after an interruption;
       // the next tap must be able to do it.
       armUnlocking()
-      ctx.resume().catch(() => undefined)
+      ctx
+        .resume()
+        .then(then)
+        .catch(() => undefined)
     }
   }
 
@@ -300,6 +322,7 @@ export const createScore = (deps: ControllerDeps): Score => {
       .then(() => {
         if (ctx.state === "running") {
           stopUnlocking()
+          playWoken()
         }
       })
       .catch(() => undefined)
@@ -426,6 +449,48 @@ export const createScore = (deps: ControllerDeps): Score => {
     if (item.plan && soundOn()) {
       legacy.start(item.plan, item.originMs, config.intensity)
     }
+  }
+
+  const playCue = (events: readonly SceneEvent[], on: () => boolean): void => {
+    const running = engineOn(on) ? ensureEngine() : null
+
+    if (!running) {
+      return
+    }
+
+    hold()
+    running.cue(events)
+    releaseSoon()
+  }
+
+  // The context is awake: the cues that waited for it play now, unless they
+  // waited too long or the page went quiet meanwhile.
+  const playWoken = (): void => {
+    if (howler.ctx?.state !== "running") {
+      return
+    }
+
+    const due = asleep
+    const nowMs = deps.now()
+
+    asleep = []
+
+    for (const item of due) {
+      if (!disposed && nowMs - item.at <= CUE_WAKE_MS && item.on()) {
+        playCue(item.events, item.on)
+      }
+    }
+  }
+
+  const waitForWake = (
+    events: readonly SceneEvent[],
+    on: () => boolean,
+  ): void => {
+    const nowMs = deps.now()
+
+    asleep = asleep.filter((item) => nowMs - item.at <= CUE_WAKE_MS)
+    asleep.push({ events, at: nowMs, on })
+    wake(playWoken)
   }
 
   const compile = (
@@ -640,24 +705,24 @@ export const createScore = (deps: ControllerDeps): Score => {
         return
       }
 
-      const running = engineOn(on) ? ensureEngine() : null
       const events = compileCue(cue, opts())
 
-      if (!running || events.length === 0) {
+      if (events.length === 0 || !(engineOn(on) && ensureEngine())) {
         return
       }
 
-      // A cue into a sleeping context would play late, after it wakes; drop it
-      // and ask the context to wake for the next one.
+      // Howler puts the context to sleep after a quiet spell: on a deck's
+      // projector, every gap between its Razzia faces. A cue then waits for the
+      // wake, which takes a few milliseconds, instead of being lost: dropped,
+      // it was a poll's first vote, and with one voter the whole poll was
+      // silent (CST-426 task 0201).
       if (howler.ctx?.state !== "running") {
-        wake()
+        waitForWake(events, on)
 
         return
       }
 
-      hold()
-      running.cue(events)
-      releaseSoon()
+      playCue(events, on)
     },
 
     stop: (lane, fadeS = 0.3) => {
@@ -671,6 +736,7 @@ export const createScore = (deps: ControllerDeps): Score => {
       }
 
       live.clear()
+      asleep = []
       stopPump()
       release()
     },
@@ -681,6 +747,7 @@ export const createScore = (deps: ControllerDeps): Score => {
 
     dispose: () => {
       disposed = true
+      asleep = []
       stopEverything(0)
       live.clear()
       teardownEngine()
