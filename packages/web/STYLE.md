@@ -276,11 +276,14 @@ own linear clock, never on a spring.
   left. In the last five seconds the digit swells, heats to `warning` and pulses
   on every tick, and the room runs warm. **The count** is how many are in.
   Each is one large number with one small label.
-- **The heartbeat** (task 0012, concept 5, calm): while answering is open the
-  projector plays the poll's `beat` cue, 56 bpm at the unlock quickening to 120
-  by the end, and hands over to the last five seconds' ticks. Each answer pings
-  a step higher and the count flashes (`rz-hud-flash`, brand, from 1.2x). Nothing
-  else moves: no room light and no rings while people are reading.
+- **The heartbeat** (task 0012, concept 5, calm): while answering is open in
+  Calm the projector plays the poll's `beat` cue, 56 bpm at the unlock
+  quickening to 120 by the end, and hands over to the last five seconds' ticks.
+  Full has no heartbeat there: its answers groove keeps time, and a heartbeat on
+  its own clock over the groove sounded like two tracks at once (CST-426 task
+  0116, 2026-11-20). Each answer pings a step higher and the count flashes
+  (`rz-hud-flash`, brand, from 1.2x). Nothing else moves: no room light and no
+  rings while people are reading.
 - The question screen holds the same bottom structure the answers screen has
   (the clock row, the room the tiles will fill, the bottom 8%), so the prompt
   never moves when the answers arrive.
@@ -456,7 +459,8 @@ A per-game setting in the Visuals tab, snapshotted at game creation like the
 sound theme. **Full** is everything. **Calm** keeps the picture and the words
 and drops a moment's light (floor light, flares and rings), the spotlight,
 the beams and the confetti (the verdict happens on the tile); its music is 12 dB
-lower with no groove while answering, and the heartbeat plays at half strength. **Silent** is
+lower with no groove while answering (the answering heartbeat keeps time
+instead), and every heartbeat plays at half strength. **Silent** is
 Calm with no audio. A device set to reduced motion gets Calm's visuals, and
 also drops the count animation; audio does not follow it. Read it with
 `useShowIntensity` / `useCalmVisuals`.

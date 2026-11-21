@@ -7,7 +7,7 @@ vi.mock("@razzia/web/features/game/audio/score", () => ({
   score: { cue },
 }))
 
-const { answerBeatMs, useAnswerHeartbeat } =
+const { answerBeatMs, answerHeartbeatPlays, useAnswerHeartbeat } =
   await import("@razzia/web/features/game/hooks/use-answer-heartbeat")
 
 describe("the answering heartbeat", () => {
@@ -68,5 +68,13 @@ describe("the answering heartbeat", () => {
     vi.advanceTimersByTime(10_000)
 
     expect(cue).not.toHaveBeenCalled()
+  })
+
+  // In Full the answers groove keeps time; a heartbeat on its own clock over
+  // it sounds like a second track (CST-426 task 0116).
+  it("plays only in Calm, where no groove keeps time under it", () => {
+    expect(answerHeartbeatPlays("calm")).toBe(true)
+    expect(answerHeartbeatPlays("full")).toBe(false)
+    expect(answerHeartbeatPlays("silent")).toBe(false)
   })
 })

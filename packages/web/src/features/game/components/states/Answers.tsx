@@ -14,11 +14,17 @@ import {
   useEvent,
   useSocket,
 } from "@razzia/web/features/game/contexts/socket-context"
-import { useAnswerHeartbeat } from "@razzia/web/features/game/hooks/use-answer-heartbeat"
+import {
+  answerHeartbeatPlays,
+  useAnswerHeartbeat,
+} from "@razzia/web/features/game/hooks/use-answer-heartbeat"
 import { useAnswerReveal } from "@razzia/web/features/game/hooks/use-answer-reveal"
 import { useSceneArrival } from "@razzia/web/features/game/hooks/use-scene-arrival"
 import { useSecondsUntil } from "@razzia/web/features/game/hooks/use-seconds-until"
-import { useCalmVisuals } from "@razzia/web/features/game/hooks/use-show-intensity"
+import {
+  useCalmVisuals,
+  useShowIntensity,
+} from "@razzia/web/features/game/hooks/use-show-intensity"
 import { useManagerStore } from "@razzia/web/features/game/stores/manager"
 import { useMoodOverride } from "@razzia/web/features/game/stores/mood"
 import { usePlayerStore } from "@razzia/web/features/game/stores/player"
@@ -111,11 +117,14 @@ const Answers = ({ data }: Props) => {
   // Only a phone has a seat; the projector shows the same tiles, untappable.
   const interactive = Boolean(player && gameId)
   const calm = useCalmVisuals()
+  const intensity = useShowIntensity()
 
   // The projector's heartbeat while the room answers (task 0012): it quickens
-  // with the clock and hands over to the last five seconds' ticks.
+  // with the clock and hands over to the last five seconds' ticks. Never over
+  // the Full groove (`answerHeartbeatPlays`).
   useAnswerHeartbeat(
-    !interactive &&
+    answerHeartbeatPlays(intensity) &&
+      !interactive &&
       !reviewing &&
       answeringOpen &&
       timed &&
